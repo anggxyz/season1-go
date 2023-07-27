@@ -12,6 +12,7 @@ error NonExistentTokenURI();
 error WithdrawTransfer();
 error WhitelistPause();
 error InvalidAddress();
+error SingleNFTOwnershipOnly();
 
 contract VCS1 is ERC721, Ownable, Pausable {
     using Strings for uint256;
@@ -65,6 +66,13 @@ contract VCS1 is ERC721, Ownable, Pausable {
         uint256 batchSize
     ) internal virtual override {
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
+
+        // an address can only one NFT
+        if (balanceOf(to) > 0) {
+          revert SingleNFTOwnershipOnly();
+        }
+
+        // whitelisted addresses cannot transfer / swap NFTs
         if (_isWhitelisted(from) && paused()) {
             revert WhitelistPause();
         }

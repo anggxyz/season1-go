@@ -70,7 +70,7 @@ contract VCS1Test is Test {
       // should be token id 1
       nft.mintTo(address(1));
 
-      vm.startPrank(address(address(1)));
+      vm.startPrank(address(1));
 
       // expect revert
       vm.expectRevert(WhitelistPause.selector);
@@ -155,9 +155,9 @@ contract VCS1Test is Test {
     }
 
     /**
-     * correctly increment balance of recipient
+     * balance of an address should correctly increment on mint
      */
-    function test_BalanceIncremented() public {
+    function test_incrementBalance() public {
         nft.mintTo{value: 0.01 ether}(address(1));
         uint256 slotBalance = stdstore
             .target(address(nft))
@@ -165,16 +165,32 @@ contract VCS1Test is Test {
             .with_key(address(1))
             .find();
 
-        uint256 balanceFirstMint = uint256(
+        uint256 balance = uint256(
             vm.load(address(nft), bytes32(slotBalance))
         );
-        assertEq(balanceFirstMint, 1);
+        assertEq(balance, 1);
+    }
 
+    /**
+     * an address should be able to own a single NFT only
+     * via mint
+     */
+    function test_SingleNFTOwnershipOnlyViaMint() public {
         nft.mintTo{value: 0.01 ether}(address(1));
-        uint256 balanceSecondMint = uint256(
-            vm.load(address(nft), bytes32(slotBalance))
-        );
-        assertEq(balanceSecondMint, 2);
+        vm.expectRevert(SingleNFTOwnershipOnly.selector);
+        nft.mintTo{value: 0.01 ether}(address(1));
+    }
+    /**
+     * an address should be able to own a single NFT only
+     * via transfer
+     */
+    function test_SingleNFTOwnershipOnlyViaTransfer() public {
+        nft.mintTo{value: 0.01 ether}(address(1)); // token id 1
+        nft.mintTo{value: 0.01 ether}(address(2)); // token id 2
+        vm.startPrank(address(2));
+        vm.expectRevert(SingleNFTOwnershipOnly.selector);
+        nft.safeTransferFrom(address(2), address(1), 2);
+        vm.stopPrank();
     }
 
     function test_SafeContractReceiver() public {
