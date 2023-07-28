@@ -2,8 +2,10 @@
 
 import type { GetServerSideProps, NextPage } from "next";
 import { siweServer } from "src/server/utils/siweServer";
+import Main from "~src/layouts/Main";
 
 const walletHasToken = (address: string): boolean => {
+  // add token checking logic here
   console.log({address});
   return true
 }
@@ -24,8 +26,15 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   };
 };
 
-const CollectorsOnlyPage: NextPage = () => {
-  return <>Welcome, collector.</>;
+const About: NextPage = () => {
+  return (
+  <Main>
+    <div>
+      <div>This is a token gated page.</div>
+      <div>Welcome, collector.</div>
+    </div>
+  </Main>
+  );
 };
 
-export default CollectorsOnlyPage;
+export default About;
