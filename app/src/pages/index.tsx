@@ -95,7 +95,7 @@ const Wrapper = styled.div`
 `
 
 export default function Home() {
-  const [displayConnectWalletWindow, setDisplayConnectWalletWindow] = useState<boolean>(true);
+  const [displayConnectWalletWindow, setDisplayConnectWalletWindow] = useState<boolean>(false);
   const { address, isDisconnected } = useAccount()
   const isAccountConnected = Boolean(address) || Boolean(!isDisconnected);
   const [mintButtonLabel, setMintButtonLabel] = useState<string>("Mint");
@@ -121,6 +121,7 @@ export default function Home() {
   const onClickMint = async () => {
     if (!isAccountConnected) {
       openConnectWalletWindow();
+      return;
     }
     // execute mint function here @todo
     console.log("account detected. execute mint function")
