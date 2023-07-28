@@ -1,5 +1,3 @@
-// Test token gated page
-
 import type { GetServerSideProps, NextPage } from "next";
 import { siweServer } from "src/server/utils/siweServer";
 import Main from "~src/layouts/Main";
