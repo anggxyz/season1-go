@@ -1,12 +1,8 @@
 import type { GetServerSideProps, NextPage } from "next";
 import { siweServer } from "src/server/utils/siweServer";
+import { walletHasToken } from "~src/hooks/useIsTokenGated";
 import Main from "~src/layouts/Main";
 
-const walletHasToken = (address: string): boolean => {
-  // add token checking logic here
-  console.log({address});
-  return true
-}
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   const { address } = await siweServer.getSession(req, res);
