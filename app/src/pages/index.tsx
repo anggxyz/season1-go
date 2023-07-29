@@ -3,7 +3,7 @@ import { ConnectKitButton } from "connectkit";
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Button, Frame, Window, WindowContent, WindowHeader, Anchor, Hourglass } from "react95";
+import { Button, Frame, Window, WindowContent, WindowHeader, Hourglass } from "react95";
 import Main from "src/layouts/Main";
 import styled from 'styled-components';
 import { useAccount } from 'wagmi'
@@ -100,7 +100,7 @@ export default function Home() {
   const isAccountConnected = Boolean(address) || Boolean(!isDisconnected);
   const [mintButtonLabel, setMintButtonLabel] = useState<string>("Mint");
 
-  const whitelistStatus = useWhitelistStatus();
+  const { status } = useWhitelistStatus();
   const mintPrice = useMintPrice();
   const {isMinting, isError, mint, setIsError} = useMint();
   const {isOwner,tokenId} = useIsOwner();
@@ -151,7 +151,7 @@ export default function Home() {
         }} shadow>
           @todo info regarding lock and whitelist status here
           <p>
-            Whitelist Status: {String(whitelistStatus)};
+            Whitelist Status: {String(status)};
             <Link href="/about">
               What does it mean?
             </Link>
@@ -177,6 +177,9 @@ export default function Home() {
               <Button className="mint-button" onClick={onClickMint}>
                 {isMinting ? <Hourglass size={32} style={{ margin: 20 }} /> : mintButtonLabel}
               </Button>
+              {isAccountConnected && !displayConnectWalletWindow && <Button onClick={() => openConnectWalletWindow()}>
+                View Connected Account
+              </Button>}
             </div>
             }
 

@@ -1,27 +1,33 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { type AppType } from "next/app";
-import { WagmiConfig, createConfig } from "wagmi";
+import { WagmiConfig, createConfig, configureChains } from "wagmi";
 import { ConnectKitProvider, getDefaultConfig, type SIWESession } from "connectkit";
 import { siweClient } from "src/utils/siweClient";
 import { ThemeProvider } from 'styled-components';
 import original from 'react95/dist/themes/original';
+import { alchemyProvider } from "wagmi/providers/alchemy";
+import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
+import {foundry} from "wagmi/chains";
 
-if (!process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID) {
-  throw "WALLETCONNECT_PROJECT_ID not found in .env";
-}
-
-const config = createConfig(
-  getDefaultConfig({
-    alchemyId: process.env.NEXT_PUBLIC_ALCHEMY_ID,
-    walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
-    // Required
-    appName: "Your App Name",
-    // Optional
-    appDescription: "Your App Description",
-    appUrl: "https://season1-go.vercel.app", // your app's url
-    appIcon: "https://season1-go.vercel.app/logo.png", // your app's icon, no bigger than 1024x1024px (max. 1MB)
-  }),
-);
+const { publicClient, webSocketPublicClient } = configureChains(
+  [foundry],
+  // /env.mjs ensures the the app isn't built without .env vars
+  [jsonRpcProvider({
+    rpc: () => ({
+      http: `http://localhost:8545`,
+    })
+  }), alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID! })],
+)
+const config = createConfig(getDefaultConfig({
+  alchemyId: process.env.NEXT_PUBLIC_ALCHEMY_ID,
+  // /env.mjs ensures the the app isn't built without .env vars
+  walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
+  appName: "VC-S1",
+  appDescription: "VCS1",
+  appUrl: "https://season1-go.vercel.app",
+  appIcon: "https://season1-go.vercel.app/logo.png",
+  publicClient,
+  webSocketPublicClient
+}));
 
 
 const MyApp: AppType = ({

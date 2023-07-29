@@ -55,7 +55,7 @@ contract VCS1 is ERC721, Ownable, Pausable {
     }
 
 
-    function _isWhitelisted(address addr) internal view virtual returns (bool) {
+    function isWhitelisted(address addr) public view virtual returns (bool) {
       return whitelistedAddresses[addr];
     }
 
@@ -73,13 +73,13 @@ contract VCS1 is ERC721, Ownable, Pausable {
         }
 
         // whitelisted addresses cannot transfer / swap NFTs
-        if (_isWhitelisted(from) && paused()) {
+        if (isWhitelisted(from) && paused()) {
             revert WhitelistPause();
         }
     }
 
     function mintTo(address recipient) public payable returns (uint256) {
-        if (msg.value != MINT_PRICE && !_isWhitelisted(recipient)) {
+        if (msg.value != MINT_PRICE && !isWhitelisted(recipient)) {
             revert MintPriceNotPaid();
         }
         uint256 newTokenId = ++currentTokenId;
