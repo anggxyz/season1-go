@@ -10,9 +10,10 @@ import { useMintPrice } from "~src/hooks/useMintPrice";
 import { useWhitelistStatus } from "~src/hooks/useWhitelistStatus";
 import { useMint } from "~src/hooks/useMint";
 import { useIsOwner } from "~src/hooks/useIsOwner";
+import { useIsPaused } from "~src/hooks/useIsPaused";
 
 const MESSAGES = {
-  whitelisted: 'Your NFT is non-transferrable until season 1 ends.',
+  whitelisted: 'You are in the Whitelist',
   nonWhitelisted: 'Your Address is not whitelisted, mint the NFT below and enter the game (todo, add better description here)'
 }
 const Wrapper = styled.div`
@@ -103,10 +104,10 @@ export default function Home() {
   const { address, isDisconnected } = useAccount()
   const isAccountConnected = Boolean(address) || Boolean(!isDisconnected);
   const [mintButtonLabel, setMintButtonLabel] = useState<string>("Mint");
-
+  const paused = useIsPaused();
   const { status } = useWhitelistStatus();
   const mintPrice = useMintPrice();
-  const {isMinting, isError, mint, setIsError} = useMint();
+  const {isMinting, isError, mint} = useMint();
   const {isOwner,tokenId} = useIsOwner();
 
   useEffect(() => {
@@ -117,7 +118,6 @@ export default function Home() {
       setMintButtonLabel("Connect Account");
     }
   }, [isAccountConnected])
-
   const getWhitelistInfoMessage = (status: boolean) => {
     switch(status) {
       case true: return MESSAGES.whitelisted;
@@ -127,22 +127,16 @@ export default function Home() {
   }
   const closeConnectWalletWindow = () => setDisplayConnectWalletWindow(false);
   const openConnectWalletWindow = () => {
-    setIsError(false);
     setDisplayConnectWalletWindow(true);
   }
 
-  const onClickMint = async () => {
+  const onClickMint = () => {
     if (!isAccountConnected) {
       openConnectWalletWindow();
       return;
     }
-    // execute mint function here @todo
-    console.log("account detected. execute mint function")
-    await mint();
+    mint();
     return;
-  }
-  const reset = () => {
-    setIsError(false);
   }
 
   return (
@@ -157,6 +151,10 @@ export default function Home() {
         <Window style={{ padding: '0.2rem', width: '100%', height: 'min-content', marginBottom: '1rem' }}>
           <WindowContent>
           <GroupBox label="Your whitelist status">
+              <p>todo (need better description here)</p>
+              <p>
+                Contract pause status: {String(paused)}
+              </p>
               <p>
                 {getWhitelistInfoMessage(status)}
               </p>
@@ -183,11 +181,11 @@ export default function Home() {
               <Button className="mint-button" onClick={onClickMint}>
                 {isMinting ? <Hourglass size={32} style={{ margin: 20 }} /> : mintButtonLabel}
               </Button>
-              {isAccountConnected && !displayConnectWalletWindow && <Button onClick={() => openConnectWalletWindow()}>
-                View Connected Account
-              </Button>}
             </div>
             }
+            {isAccountConnected && !displayConnectWalletWindow && <Button onClick={() => openConnectWalletWindow()}>
+                View Connected Account
+              </Button>}
 
           </Window>
 
@@ -218,7 +216,7 @@ export default function Home() {
               <span>Error</span>
             </WindowHeader>
             <p>There was an error</p>
-            <Button primary onClick={reset}>Try again?</Button>
+            <Button primary>Try again?</Button>
           </Window>}
           </div>
         </Wrapper>

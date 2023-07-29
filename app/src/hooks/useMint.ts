@@ -1,34 +1,29 @@
-import { useState } from 'react';
-
-// remove, just for testing
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+import { useAccount, useContractWrite } from 'wagmi';
+import { deployed } from '~src/utils/contracts/vcs1';
+import { useIsOwner } from './useIsOwner';
 
 export const useMint = (): {
   isMinting: boolean,
   isError: boolean,
-  mint: () => Promise<void>;
-  setIsError: (e: boolean) => void;
+  mint: () => void;
 } => {
-  const [isMinting, setIsMinting] = useState<boolean>(false);
-  const [isError, setIsError] = useState<boolean>(false);
-
-  const mint = async () => {
-    try {
-      setIsMinting(true);
-      // call contract here
-
-      // remove, just for testing
-      await sleep(3000);
-      setIsMinting(false);
-      
-      throw "";
-    } catch (err) {
-      setIsError(true);
-      setIsMinting(false);
+  const { address } = useAccount();
+  const { tokenOfOwnerByIndexRefetch,balanceOfRefetch } = useIsOwner();
+  const { data, isLoading, isSuccess, write, isError, error } = useContractWrite({
+    address: deployed.address as `0x${string}`,
+    abi: deployed.abi,
+    functionName: 'mintTo',
+    args: [address],
+    chainId: deployed.chainId,
+    onSuccess: () => {
+      tokenOfOwnerByIndexRefetch();
+      balanceOfRefetch();
     }
-  }
+  })
+
+  console.log({data, isSuccess, isError, error})
 
   return {
-    isMinting, isError, mint, setIsError
+    isMinting: isLoading, isError, mint: write
   }
 };

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.10;
 
-import "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
+import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/utils/Strings.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "openzeppelin-contracts/contracts/security/Pausable.sol";
@@ -14,7 +14,7 @@ error WhitelistPause();
 error InvalidAddress();
 error SingleNFTOwnershipOnly();
 
-contract VCS1 is ERC721, Ownable, Pausable {
+contract VCS1 is ERC721Enumerable, Ownable, Pausable {
     using Strings for uint256;
 
     string public baseURI;

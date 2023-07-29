@@ -8,8 +8,11 @@ import { alchemyProvider } from "wagmi/providers/alchemy";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import {foundry} from "wagmi/chains";
 
+
+const CHAINS = [foundry]
+
 const { publicClient, webSocketPublicClient } = configureChains(
-  [foundry],
+  CHAINS,
   // /env.mjs ensures the the app isn't built without .env vars
   [jsonRpcProvider({
     rpc: () => ({
@@ -26,7 +29,8 @@ const config = createConfig(getDefaultConfig({
   appUrl: "https://season1-go.vercel.app",
   appIcon: "https://season1-go.vercel.app/logo.png",
   publicClient,
-  webSocketPublicClient
+  webSocketPublicClient,
+  chains: CHAINS
 }));
 
 
