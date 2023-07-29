@@ -100,7 +100,6 @@ export default function Home() {
   const isAccountConnected = Boolean(address) || Boolean(!isDisconnected);
   const [mintButtonLabel, setMintButtonLabel] = useState<string>("Mint");
 
-
   const whitelistStatus = useWhitelistStatus();
   const mintPrice = useMintPrice();
   const {isMinting, isError, mint, setIsError} = useMint();
@@ -116,7 +115,10 @@ export default function Home() {
   }, [isAccountConnected])
 
   const closeConnectWalletWindow = () => setDisplayConnectWalletWindow(false);
-  const openConnectWalletWindow = () => setDisplayConnectWalletWindow(true);
+  const openConnectWalletWindow = () => {
+    setIsError(false);
+    setDisplayConnectWalletWindow(true);
+  }
 
   const onClickMint = async () => {
     if (!isAccountConnected) {
@@ -181,13 +183,13 @@ export default function Home() {
           </Window>
 
           {/* connect wallet window */}
-          {displayConnectWalletWindow &&
+
           <div style={{
             display: 'flex',
             flexDirection: 'column',
             gap: '8px'
           }}>
-            <Window className="connect-wallet-window">
+            {displayConnectWalletWindow && <Window className="connect-wallet-window">
               <WindowHeader className="window-title">
                 {isAccountConnected ? <span>Connected Account</span> : <span>Connect Wallet</span>}
                 <Button onClick={closeConnectWalletWindow}><span className='close-icon' /></Button>
@@ -195,7 +197,7 @@ export default function Home() {
               <WindowContent className="window-content">
                 <ConnectKitButton showAvatar showBalance />
               </WindowContent>
-            </Window>
+            </Window>}
             {isError && <Window style={{
               height: "min-content",
               width: "100%",
@@ -205,13 +207,11 @@ export default function Home() {
             }} >
             <WindowHeader className="window-title">
               <span>Error</span>
-              <Button onClick={closeConnectWalletWindow}><span className='close-icon' /></Button>
             </WindowHeader>
             <p>There was an error</p>
             <Button primary onClick={reset}>Try again?</Button>
           </Window>}
           </div>
-          }
         </Wrapper>
         </>
       </Main>

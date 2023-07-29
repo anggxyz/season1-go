@@ -19,8 +19,9 @@ export const useMint = (): {
 
       // remove, just for testing
       await sleep(3000);
-      throw "";
       setIsMinting(false);
+      
+      throw "";
     } catch (err) {
       setIsError(true);
       setIsMinting(false);
