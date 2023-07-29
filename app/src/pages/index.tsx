@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { ConnectKitButton } from "connectkit";
 import Head from "next/head";
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Button, Frame, Window, WindowContent, WindowHeader, Hourglass } from "react95";
+import { Button, Window, WindowContent, WindowHeader, Hourglass, GroupBox } from "react95";
 import Main from "src/layouts/Main";
 import styled from 'styled-components';
 import { useAccount } from 'wagmi'
@@ -11,6 +10,11 @@ import { useMintPrice } from "~src/hooks/useMintPrice";
 import { useWhitelistStatus } from "~src/hooks/useWhitelistStatus";
 import { useMint } from "~src/hooks/useMint";
 import { useIsOwner } from "~src/hooks/useIsOwner";
+
+const MESSAGES = {
+  whitelisted: 'Your NFT is non-transferrable until season 1 ends.',
+  nonWhitelisted: 'Your Address is not whitelisted, mint the NFT below and enter the game (todo, add better description here)'
+}
 const Wrapper = styled.div`
   display: flex;
   gap: 18px;
@@ -114,6 +118,13 @@ export default function Home() {
     }
   }, [isAccountConnected])
 
+  const getWhitelistInfoMessage = (status: boolean) => {
+    switch(status) {
+      case true: return MESSAGES.whitelisted;
+      case false: return MESSAGES.nonWhitelisted;
+      default: return "Whitelist Status";
+    }
+  }
   const closeConnectWalletWindow = () => setDisplayConnectWalletWindow(false);
   const openConnectWalletWindow = () => {
     setIsError(false);
@@ -143,20 +154,15 @@ export default function Home() {
       </Head>
       <Main>
         <>
-        <Frame variant="well" style={{
-          marginTop: '1rem',
-          marginBottom: '1rem',
-          padding: '1rem',
-          width: '100%'
-        }} shadow>
-          @todo info regarding lock and whitelist status here
-          <p>
-            Whitelist Status: {String(status)};
-            <Link href="/about">
-              What does it mean?
-            </Link>
-          </p>
-        </Frame>
+        <Window style={{ padding: '0.2rem', width: '100%', height: 'min-content', marginBottom: '1rem' }}>
+          <WindowContent>
+          <GroupBox label="Your whitelist status">
+              <p>
+                {getWhitelistInfoMessage(status)}
+              </p>
+            </GroupBox>
+          </WindowContent>
+        </Window>
         <Wrapper>
           {/* mint window */}
           <Window className="window">
