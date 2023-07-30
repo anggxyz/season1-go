@@ -6,16 +6,16 @@ import { useRouter } from 'next/router'
 
 type NavItem = "home" | "about" | "kya";
 
-const getActiveNavItem = (path: string): NavItem => {
+const getActiveNavItem = (path: string): NavItem | undefined => {
   if (path === "/") return "home";
   if (path.includes("about")) return "about";
   if (path.includes("kya")) return "kya";
-  return "home";
+  return;
 }
 
 export default function Nav() {
   const router = useRouter()
-  const activeNavItem: NavItem = getActiveNavItem(router.pathname);
+  const activeNavItem = getActiveNavItem(router.pathname);
   // const locked = useIsTokenGated();
   return (
     <AppBar>

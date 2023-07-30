@@ -1,25 +1,11 @@
 import { type AppType } from "next/app";
-import { WagmiConfig, createConfig, configureChains } from "wagmi";
+import { WagmiConfig, createConfig } from "wagmi";
 import { ConnectKitProvider, getDefaultConfig, type SIWESession } from "connectkit";
 import { siweClient } from "src/utils/siweClient";
 import { ThemeProvider } from 'styled-components';
 import original from 'react95/dist/themes/original';
-import { alchemyProvider } from "wagmi/providers/alchemy";
-import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
-import {foundry} from "wagmi/chains";
+import { CHAINS, publicClient, webSocketPublicClient } from "~src/utils/onChainConfig";
 
-
-const CHAINS = [foundry]
-
-const { publicClient, webSocketPublicClient } = configureChains(
-  CHAINS,
-  // /env.mjs ensures the the app isn't built without .env vars
-  [jsonRpcProvider({
-    rpc: () => ({
-      http: `http://localhost:8545`,
-    })
-  }), alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID! })],
-)
 const config = createConfig(getDefaultConfig({
   alchemyId: process.env.NEXT_PUBLIC_ALCHEMY_ID,
   // /env.mjs ensures the the app isn't built without .env vars
@@ -32,6 +18,7 @@ const config = createConfig(getDefaultConfig({
   webSocketPublicClient,
   chains: CHAINS
 }));
+
 
 
 const MyApp: AppType = ({
