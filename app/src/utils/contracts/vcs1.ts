@@ -694,6 +694,6 @@ export const abi = [
 
 export const deployed = {
   chainId: 5,
-  address: "0x9C182db942e6530affA7668e3d6898e9B6BEC797",
+  address: "0xd38b839b7e7eF7300B6819A360620AF8035c506c",
   abi
 }
