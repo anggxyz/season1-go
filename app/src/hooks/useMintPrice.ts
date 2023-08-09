@@ -1,11 +1,12 @@
 import { useContractRead } from 'wagmi';
-import { useWhitelistStatus } from './useWhitelistStatus';
 import { deployed } from '~src/utils/contracts/vcs1';
 import { formatEther } from 'viem';
 import { useEffect, useState } from 'react';
 
+// @todo fix this
 export const useMintPrice = (): string => {
-  const {status} = useWhitelistStatus();
+  // const {status} = useWhitelistStatus();
+  const status = false;
   const [mintPrice, setMintPrice] = useState<string>("");
 
   const { data, isLoading, error } = useContractRead({
@@ -23,8 +24,6 @@ export const useMintPrice = (): string => {
     }
   }, [data, isLoading, error, status])
 
-  // @todo remove logging here
-  console.log({ data, isLoading, error });
 
   return mintPrice;
 };

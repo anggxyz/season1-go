@@ -6,7 +6,7 @@ import Main from "src/layouts/Main";
 import styled from 'styled-components';
 import { useAccount } from 'wagmi'
 import { useMintPrice } from "~src/hooks/useMintPrice";
-import { useWhitelistStatus } from "~src/hooks/useWhitelistStatus";
+import { useDataStore } from "~src/hooks/useDataStore";
 import { useMint } from "~src/hooks/useMint";
 import { useIsOwner } from "~src/hooks/useIsOwner";
 import { useIsPaused } from "~src/hooks/useIsPaused";
@@ -97,7 +97,7 @@ export default function Home() {
   const isAccountConnected = Boolean(address) || Boolean(!isDisconnected);
   const [mintButtonLabel, setMintButtonLabel] = useState<string>("Mint");
   const paused = useIsPaused();
-  const { status } = useWhitelistStatus();
+  const { data } = useDataStore({key: "whitelist"});
   const mintPrice = useMintPrice();
   const {isMinting, isError, mint} = useMint();
   const {isOwner,tokenId} = useIsOwner();
@@ -150,7 +150,7 @@ export default function Home() {
                 Contract pause status: {String(paused)}
               </p>
               <p>
-                {getWhitelistInfoMessage(status)}
+                {JSON.stringify(data)}
               </p>
             </GroupBox>
           </WindowContent>
