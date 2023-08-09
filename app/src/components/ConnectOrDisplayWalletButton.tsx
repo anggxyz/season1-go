@@ -5,7 +5,6 @@ import { useAccount } from "wagmi"
 export const ConnectOrDisplayWalletButton = ({disabled}: {disabled: boolean}) => {
   const { isConnected } = useAccount()
   const { setOpen } = useModal();
-  console.log({disabled});
   if (isConnected) {
     return (
       <div>

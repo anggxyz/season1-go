@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { useAccount } from 'wagmi'
 import { useMintPrice } from "~src/hooks/useMintPrice";
 import { useMint } from "~src/hooks/useMint";
-import { useIsOwner } from "~src/hooks/useIsOwner";
+import { useIsOwnerOfToken } from "~src/hooks/useIsOwnerOfToken";
 import { useIsPaused } from "~src/hooks/useIsPaused";
 import { ConnectAccountsWindow } from "~src/components/ConnectAccountsWindow";
 import { ErrorWindow } from "~src/components/ErrorWindow";
@@ -16,6 +16,13 @@ import { useWhitelistStatus } from "~src/hooks/useWhitelistStatus";
 const MESSAGES = {
   whitelisted: 'Your twitter account is in the Whitelist',
   nonWhitelisted: 'Your twitter account is not whitelisted, mint the NFT below and enter the game'
+}
+const getWhitelistInfoMessage = (status: boolean) => {
+  switch(status) {
+    case true: return MESSAGES.whitelisted;
+    case false: return MESSAGES.nonWhitelisted;
+    default: return "Whitelist Status";
+  }
 }
 const Wrapper = styled.div`
   display: flex;
@@ -98,12 +105,16 @@ export default function Home() {
   const [mintButtonLabel, setMintButtonLabel] = useState<string>("Mint");
   const paused = useIsPaused();
   const status = useWhitelistStatus();
-  const mintPrice = useMintPrice();
-  const {isMinting, isError, mint} = useMint();
-  const {isOwner,tokenId} = useIsOwner();
+  const {mintPrice} = useMintPrice();
+  const {publicMint, whitelistMint, publicMintIsError, whitelistMintIsError, publicMintIsLoading, whitelistMintIsLoading} = useMint();
+  const isMinting = publicMintIsLoading || whitelistMintIsLoading;
+
+  const {isOwner,tokenId} = useIsOwnerOfToken();
+
   useEffect(() => {
-    setDisplayErrorWindow(isError);
-  }, [isError])
+    setDisplayErrorWindow(publicMintIsError || whitelistMintIsError);
+  }, [publicMintIsError, whitelistMintIsError])
+
   useEffect(() => {
     if (isAccountConnected) {
       setMintButtonLabel("Mint");
@@ -112,13 +123,8 @@ export default function Home() {
       setMintButtonLabel("Connect");
     }
   }, [isAccountConnected])
-  const getWhitelistInfoMessage = (status: boolean) => {
-    switch(status) {
-      case true: return MESSAGES.whitelisted;
-      case false: return MESSAGES.nonWhitelisted;
-      default: return "Whitelist Status";
-    }
-  }
+
+
   const closeConnectWalletWindow = () => setDisplayConnectWalletWindow(false);
   const openConnectWalletWindow = () => {
     setDisplayConnectWalletWindow(true);
@@ -129,7 +135,11 @@ export default function Home() {
       openConnectWalletWindow();
       return;
     }
-    mint();
+    if (status) {
+      return whitelistMint();
+    } else {
+      return publicMint();
+    }
     return;
   }
 
@@ -145,7 +155,6 @@ export default function Home() {
         <Window style={{ padding: '0.2rem', width: '100%', height: 'min-content', marginBottom: '1rem' }}>
           <WindowContent>
           <GroupBox label="Your whitelist status">
-              <p>todo (need better description here)</p>
               <p>
                 Public mints paused: {String(paused.publicMints)}
               </p>

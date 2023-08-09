@@ -3,7 +3,7 @@ import { useAccount, useContractRead } from 'wagmi';
 import { deployed } from '~src/utils/contracts/vcs1';
 
 
-export const useIsOwner = (): {
+export const useIsOwnerOfToken = (): {
   isOwner: boolean,
   tokenId: number,
   tokenOfOwnerByIndexRefetch: () => unknown,

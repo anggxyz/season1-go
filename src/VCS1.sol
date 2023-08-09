@@ -4,6 +4,7 @@ pragma solidity 0.8.10;
 import "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import "openzeppelin-contracts/contracts/utils/Strings.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
+import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
 error MintPriceNotPaid();
 error MaxSupply();
@@ -17,7 +18,7 @@ error PublicMintsActive();
 error WhitelistTransfersPaused();
 error WhitelistTransfersActive();
 
-contract VCS1 is ERC721, Ownable {
+contract VCS1 is ERC721, Ownable, ERC721Enumerable {
     using Strings for uint256;
     string public baseURI;
     uint256 public currentTokenId;
@@ -46,7 +47,11 @@ contract VCS1 is ERC721, Ownable {
         _whitelistTransfersPaused = true;
         _publicMintsPaused = true;
     }
-
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC721, ERC721Enumerable) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
     function minterToHash(address minter) public view returns (bytes32) {
       return _minterToHash[minter];
     }
@@ -56,7 +61,7 @@ contract VCS1 is ERC721, Ownable {
     }
 
     function isMinter(address minter) public view returns (bool) {
-      return _minter[minter];
+      return _minter[minter] == true;
     }
 
     function merkleRoot() public view virtual returns (bytes32) {
@@ -129,7 +134,7 @@ contract VCS1 is ERC721, Ownable {
       _whitelistTransfersPaused = false;
     }
 
-        /**
+    /**
      * @dev onlyOwner function to update the base URI for the NFTs
      *
      * @param _baseURI new uri to update
@@ -156,7 +161,7 @@ contract VCS1 is ERC721, Ownable {
         address to,
         uint256 firstTokenId,
         uint256 batchSize
-    ) internal virtual override {
+    ) internal virtual override (ERC721, ERC721Enumerable) {
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
         if (minterToHash(from) != 0 && whitelistTransfersPaused()) {
           revert WhitelistTransfersPaused();
