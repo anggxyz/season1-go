@@ -2,10 +2,10 @@ import { ConnectKitButton, useModal } from "connectkit"
 import { Button } from "react95"
 import { useAccount } from "wagmi"
 
-export const ConnectOrDisplayWalletButton = () => {
-  const { address, isDisconnected, isConnected } = useAccount()
+export const ConnectOrDisplayWalletButton = ({disabled}: {disabled: boolean}) => {
+  const { isConnected } = useAccount()
   const { setOpen } = useModal();
-
+  console.log({disabled});
   if (isConnected) {
     return (
       <div>
@@ -14,7 +14,7 @@ export const ConnectOrDisplayWalletButton = () => {
     )
   }
   return (
-    <Button variant="flat" fullWidth onClick={() => setOpen(true)}>
+    <Button variant="flat" fullWidth onClick={() => setOpen(true)} disabled={disabled}>
       Connect Wallet
     </Button>
   )

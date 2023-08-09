@@ -7,14 +7,17 @@ export const ConnectOrDisplayTwitterButton = () => {
   const {data, disconnect} = useConnectedTwitterAccount();
   if (data?.payload) {
     return (
-      <>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'row'
+      }}>
         <Button variant="flat" fullWidth>
           {data.payload.username}
         </Button>
-        <Button onClick={disconnect}>
-          disconnect
+        <Button onClick={disconnect} variant="flat">
+          ❌
         </Button>
-      </>
+      </div>
     )
   }
   return (

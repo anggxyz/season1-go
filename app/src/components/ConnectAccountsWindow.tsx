@@ -1,6 +1,8 @@
 import { Button, Window, WindowContent, WindowHeader } from "react95"
 import { ConnectOrDisplayTwitterButton } from "./ConnectOrDisplayTwitterButton"
 import { ConnectOrDisplayWalletButton } from "./ConnectOrDisplayWalletButton"
+import { useAccountsConnectedStatus } from "~src/hooks/useAccountsConnectedStatus"
+
 
 export const ConnectAccountsWindow = ({
   onClose,
@@ -9,6 +11,8 @@ export const ConnectAccountsWindow = ({
   onClose: () => void,
   displayConnectedAccount: boolean
 }) => {
+  const connectStatus = useAccountsConnectedStatus();
+
   return (
     <Window style={{
       width: "300px",
@@ -29,7 +33,7 @@ export const ConnectAccountsWindow = ({
           gap: '8px'
         }}>
           <ConnectOrDisplayTwitterButton />
-          <ConnectOrDisplayWalletButton />
+          <ConnectOrDisplayWalletButton disabled={connectStatus.twitter === "DISCONNECTED"} />
         </div>
       </WindowContent>
     </Window>

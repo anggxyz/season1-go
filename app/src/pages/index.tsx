@@ -109,7 +109,7 @@ export default function Home() {
       setMintButtonLabel("Mint");
     }
     if (!isAccountConnected) {
-      setMintButtonLabel("Connect Account");
+      setMintButtonLabel("Connect");
     }
   }, [isAccountConnected])
   const getWhitelistInfoMessage = (status: boolean) => {
@@ -177,9 +177,12 @@ export default function Home() {
               </Button>
             </div>
             }
-            {isAccountConnected && !displayConnectWalletWindow && <Button onClick={() => openConnectWalletWindow()}>
-                View Connected Account
-              </Button>}
+            {
+              isAccountConnected && !displayConnectWalletWindow &&
+                <Button onClick={() => openConnectWalletWindow()}>
+                  View Connected Accounts
+                </Button>
+            }
 
           </Window>
 

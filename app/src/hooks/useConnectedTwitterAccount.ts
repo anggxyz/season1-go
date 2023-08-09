@@ -15,6 +15,7 @@ export function useConnectedTwitterAccount() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [data, setData] = useState<UserPayload | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
   const router = useRouter()
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export function useConnectedTwitterAccount() {
       })
       .then((v) => {
         if (v.data) setData(v.data);
+        setIsConnected(!!v.data.payload);
       })
       .catch(() => setError("Not Authenticated"))
       .finally(() => setLoading(false));
@@ -39,5 +41,5 @@ export function useConnectedTwitterAccount() {
     }
   }
 
-  return { error, data, loading, disconnect };
+  return { error, data, loading, disconnect, isConnected };
 }
