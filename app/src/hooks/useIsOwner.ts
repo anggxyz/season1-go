@@ -29,16 +29,6 @@ export const useIsOwner = (): {
     enabled: Number(balanceOf) > 0
   })
 
-  // @todo remove logging here
-  console.log({
-    balanceOf,
-    balanceOfLoading,
-    balanceOfError,
-    tokenOfOwnerByIndex,
-    tokenOfOwnerByIndexLoading,
-    tokenOfOwnerByIndexError
-  });
-
   useEffect(() => {
     if (address && isConnected && !tokenOfOwnerByIndexLoading && !balanceOfLoading && !tokenOfOwnerByIndexError && !balanceOfError) {
       if (Number(balanceOf) > 0) {

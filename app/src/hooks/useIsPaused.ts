@@ -2,23 +2,40 @@ import { useContractRead } from 'wagmi';
 import { deployed } from '~src/utils/contracts/vcs1';
 import { useEffect, useState } from 'react';
 
-export const useIsPaused = (): boolean => {
-  const [paused, setPaused] = useState<boolean>(false);
+export const useIsPaused = () => {
+  const [publicMints, setPublicMints] = useState<boolean>(false);
+  const [whitelistTransfers, setWhitelistTransfers] = useState<boolean>(false);
 
-  const { data, isLoading, error } = useContractRead({
+  const { data: publicMintsPaused, isLoading: publicMintsPausedLoading, error:publicMintsPausedError } = useContractRead({
     address: deployed.address as `0x${string}`,
     abi: deployed.abi,
-    functionName: 'paused',
+    functionName: 'publicMintsPaused',
     chainId: deployed.chainId
   })
+  const { data: whitelistTransfersPaused, isLoading: whitelistTransfersPausedLoading, error: whitelistTransfersPausedError } = useContractRead({
+    address: deployed.address as `0x${string}`,
+    abi: deployed.abi,
+    functionName: 'whitelistTransfersPaused',
+    chainId: deployed.chainId
+  })
+
   useEffect(() => {
-    if (data && !isLoading && !error) {
-      return setPaused(Boolean(data));
+    if (!publicMintsPausedLoading && !publicMintsPausedError) {
+      setPublicMints(Boolean(publicMintsPaused));
     }
-  }, [data, isLoading, error])
+    if (!whitelistTransfersPausedLoading && !whitelistTransfersPausedError) {
+      setWhitelistTransfers(Boolean(whitelistTransfersPaused));
+    }
+  }, [
+    publicMintsPaused,
+    publicMintsPausedLoading,
+    publicMintsPausedError,
+    whitelistTransfersPaused,
+    whitelistTransfersPausedLoading,
+    whitelistTransfersPausedError
+  ])
 
-  // @todo remove logging here
-  console.log({ data, isLoading, error });
-
-  return paused;
+  return {
+    publicMints, whitelistTransfers
+  };
 };

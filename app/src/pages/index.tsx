@@ -147,7 +147,10 @@ export default function Home() {
           <GroupBox label="Your whitelist status">
               <p>todo (need better description here)</p>
               <p>
-                Contract pause status: {String(paused)}
+                Public mints paused: {String(paused.publicMints)}
+              </p>
+              <p>
+                Whitelist transfer paused: {String(paused.whitelistTransfers)}
               </p>
               <p>
                 {getWhitelistInfoMessage(status)}
