@@ -6,7 +6,6 @@ import Main from "~src/layouts/Main";
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   const { address } = await siweServer.getSession(req, res);
-  console.log({address});
   if (!address || !(walletHasToken(address))) {
     return {
       redirect: {
