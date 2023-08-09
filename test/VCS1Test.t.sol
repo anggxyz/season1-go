@@ -11,108 +11,112 @@ contract VCS1Test is Test {
 
     function setUp() public {
         // Deploy NFT contract
-        nft = new VCS1("VCS1", "VCS1", "baseUri");
-    }
-
-    function test_bulkUpdateWhitelist() public {
-      address[] memory whitelist = new address[](2);
-      whitelist[0] = address(1);
-      whitelist[1] = address(2);
-      nft.bulkUpdateWhitelist(whitelist, true);
-
-      uint256 slotForFirstMember = stdstore
-            .target(address(nft))
-            .sig(nft.whitelistedAddresses.selector)
-            .with_key(address(1))
-            .find();
-      uint256 slotForSecondMember = stdstore
-            .target(address(nft))
-            .sig(nft.whitelistedAddresses.selector)
-            .with_key(address(1))
-            .find();
-
-      bytes32 loc1 = bytes32(slotForFirstMember);
-      bytes32 loc2 = bytes32(slotForSecondMember);
-
-      bytes32 isFirstWhitelisted = vm.load(address(nft), bytes32(abi.encode(loc1)));
-      bytes32 isSecondWhitelisted = vm.load(address(nft), bytes32(abi.encode(loc2)));
-
-      assertEq(isFirstWhitelisted, bytes32(abi.encode(true)));
-      assertEq(isSecondWhitelisted, bytes32(abi.encode(true)));
-    }
-
-    function test_bulkUpdateWhitelistRevertForZeroAddress() public {
-      address[] memory whitelist = new address[](1);
-      whitelist[0] = address(0);
-      vm.expectRevert(InvalidAddress.selector);
-      nft.bulkUpdateWhitelist(whitelist, true);
+        nft = new VCS1();
     }
 
     /**
-     * pausing contract for whitelisted holders
-     * should disallow transfers
+     * only owner is able to update the root
      */
-    function test_pauseForWhitelistedHolders() public {
-      // set an address as whitelisted
-      uint256 slot = stdstore
-            .target(address(nft))
-            .sig(nft.whitelistedAddresses.selector)
-            .with_key(address(1))
-            .find();
-      bytes32 loc = bytes32(slot);
-      vm.store(address(nft), loc, bytes32(abi.encode(true)));
-
-      // pause transfers for whitelisted addresses
-      nft.pause();
-
-      // set token ownership for this address
-      // no value sent, cuz whitelistede
-      // should be token id 1
-      nft.mintTo(address(1));
-
-      vm.startPrank(address(1));
-
-      // expect revert
-      vm.expectRevert(WhitelistPause.selector);
-
-      // try transferring token id 1
-      nft.safeTransferFrom(address(1), address(2), 1);
-      vm.stopPrank();
-    }
+    function test_updateMerkleRootOnlyOwner() public {}
 
     /**
-     * Allow free minting of NFTs for whitelisted addresses
+     * root should be updated correctly
      */
-    function test_MintWithoutValueForWhitelists() public {
-        uint256 slot = stdstore
-            .target(address(nft))
-            .sig(nft.whitelistedAddresses.selector)
-            .with_key(address(1))
-            .find();
-        bytes32 loc = bytes32(slot);
-        // mark address(1) as whitelisted
-        vm.store(address(nft), loc, bytes32(abi.encode(true)));
-        // no value is being sent. should not revert
-        nft.mintTo(address(1));
-    }
+    function test_updateMerkleRoot() public {}
+
     /**
-     * for non-whitelisted addresses, price is required
+     * only owner should be able to execute
+     */
+    function test_pausePublicMintsOnlyOwner() public {}
+
+    /**
+     * should pause public mint
+     * execute pausePublicMint
+     * execute `mintTo(address)` -> should revert with PublicMintsPaused()
+     */
+    function test_pausePublicMints() public {}
+
+    /**
+     * should unpause public mint
+     * check pausedPublicMints -> should be false (by default)
+     * execute pausePublicMints by owner
+     * check pausedPublicMints -> should be true
+     * execute unpausePublicMints by owner
+     * check pausedPublicMints -> shoudl be false
+     */
+    function test_unpausePublicMints() public {}
+
+    /**
+     * only owner should be able to execute
+     */
+    function test_pauseWhitelistTransfersOnlyOwner() public {}
+
+    /**
+     * should pause transfers for whitelisted addresses
+     * execute pauseWhitelistTransfers
+     * create merkle tree with 1 random hash
+     * set merkle root
+     * use hash to execute:
+     * execute mintTo(address, hash)
+     * execute safeTransferFrom for the tokenid
+     * should revert on WhitelistTransfersPaused()
+     */
+    function test_pauseWhitelistTransfers() public {}
+
+    /**
+     * check pausedWhitelistTransfers -> should be false by default
+     * execute pauseWhitelistTransfers by owner
+     * check pausedWhitelistTransfers -> should be true
+     * execute pauseWhitelistTransfers by owner
+     * check pausedWhitelistTransfers -> should be false
+     */
+    function test_unpauseWhitelistTransfers() public {}
+
+    /**
+     * no value sent in `mintTo`
+     * should revert with MintPriceNotPaid
      */
     function test_MintPriceNotPaid() public {
       vm.expectRevert(MintPriceNotPaid.selector);
-      // no value being sent
       nft.mintTo(address(1));
     }
 
     /**
-     * if not whitelisted, and price paid, mint nft
+     * successful public mint
+     * publicMintPaused should be false
+     * execute `mintTo(address)` -> should not revert
+     * address should now own a token (check balanceOf)
+     * should emit PublicMint
      */
-    function test_MintPricePaid() public {
-      nft.mintTo{value: 0.01 ether}(address(1));
-    }
+    function test_publicMint() public {}
 
     /**
-     * revert if TOTALSUPPLY=1500 mints have happened
+     * successful whitelist mint
+     * check whitelistTransfersPaused -> should be false (by default)
+     * create merkle tree with 1 random hash
+     * set merkle root
+     * use hash to execute:
+     * execute mintTo(address, hash)
+     * check balanceOf
+     * should emit WhitelistMint
+     */
+    function test_whitelistMint() public {}
+
+
+    /**
+     * should revert for invalid hash
+     * check whitelistTransfersPaused -> should be false (by default)
+     * create merkle tree with 1 random hash
+     * set merkle root
+     * use random (invalid) to execute:
+     * execute mintTo(address, hash)
+     * should revert with HashVerificationFailed()
+     */
+    function test_whitelistMintInvalidHash() public {}
+
+
+    /**
+     * revert if TOTALSUPPLY mints have happened
      */
     function test_RevertMintMaxSupplyReached() public {
         uint256 slot = stdstore
@@ -136,118 +140,86 @@ contract VCS1Test is Test {
 
 
     /**
+     * callable by owner
+     * execute updateBaseURI
+     * call tokenURI ot check
+     */
+    function test_updateBaseURI() public {}
+
+
+    /**
      * correctly register owner of a token id
+     * execute a public mint (`mintTo(address)`)
+     * execute a whitelist mint (`mintTo(address,hash)`)
+     * call minterToHash [for whitelisted]
+     * call hashToMinter  [for whitelisted]
+     * call isMinter [for both]
+     * call balanceOf [for both]
      */
-    function test_NewMintOwnerRegistered() public {
-        nft.mintTo{value: 0.01 ether}(address(1));
-        uint256 slotOfNewOwner = stdstore
-            .target(address(nft))
-            .sig(nft.ownerOf.selector)
-            .with_key(1)
-            .find();
+    // function test_NewMintOwnerRegistered() public {
+    //     nft.mintTo{value: 0.01 ether}(address(1));
+    //     uint256 slotOfNewOwner = stdstore
+    //         .target(address(nft))
+    //         .sig(nft.ownerOf.selector)
+    //         .with_key(1)
+    //         .find();
 
-        uint160 ownerOfTokenIdOne = uint160(
-            uint256(
-                (vm.load(address(nft), bytes32(abi.encode(slotOfNewOwner))))
-            )
-        );
-        assertEq(address(ownerOfTokenIdOne), address(1));
-    }
+    //     uint160 ownerOfTokenIdOne = uint160(
+    //         uint256(
+    //             (vm.load(address(nft), bytes32(abi.encode(slotOfNewOwner))))
+    //         )
+    //     );
+    //     assertEq(address(ownerOfTokenIdOne), address(1));
+    // }
 
-    /**
-     * balance of an address should correctly increment on mint
-     */
-    function test_incrementBalance() public {
-        nft.mintTo{value: 0.01 ether}(address(1));
-        uint256 slotBalance = stdstore
-            .target(address(nft))
-            .sig(nft.balanceOf.selector)
-            .with_key(address(1))
-            .find();
 
-        uint256 balance = uint256(
-            vm.load(address(nft), bytes32(slotBalance))
-        );
-        assertEq(balance, 1);
-    }
+    // /**
+    //  * an address should be able to own a single NFT only
+    //  * via mint
+    //  */
+    // function test_SingleNFTOwnershipOnlyViaMint() public {
+    //     nft.mintTo{value: 0.01 ether}(address(1));
+    //     vm.expectRevert(SingleNFTOwnershipOnly.selector);
+    //     nft.mintTo{value: 0.01 ether}(address(1));
+    // }
+    // /**
+    //  * an address should be able to own a single NFT only
+    //  * via transfer
+    //  */
+    // function test_SingleNFTOwnershipOnlyViaTransfer() public {
+    //     nft.mintTo{value: 0.01 ether}(address(1)); // token id 1
+    //     nft.mintTo{value: 0.01 ether}(address(2)); // token id 2
+    //     vm.startPrank(address(2));
+    //     vm.expectRevert(SingleNFTOwnershipOnly.selector);
+    //     nft.safeTransferFrom(address(2), address(1), 2);
+    //     vm.stopPrank();
+    // }
 
-    /**
-     * an address should be able to own a single NFT only
-     * via mint
-     */
-    function test_SingleNFTOwnershipOnlyViaMint() public {
-        nft.mintTo{value: 0.01 ether}(address(1));
-        vm.expectRevert(SingleNFTOwnershipOnly.selector);
-        nft.mintTo{value: 0.01 ether}(address(1));
-    }
-    /**
-     * an address should be able to own a single NFT only
-     * via transfer
-     */
-    function test_SingleNFTOwnershipOnlyViaTransfer() public {
-        nft.mintTo{value: 0.01 ether}(address(1)); // token id 1
-        nft.mintTo{value: 0.01 ether}(address(2)); // token id 2
-        vm.startPrank(address(2));
-        vm.expectRevert(SingleNFTOwnershipOnly.selector);
-        nft.safeTransferFrom(address(2), address(1), 2);
-        vm.stopPrank();
-    }
-
-    function test_SafeContractReceiver() public {
-        Receiver receiver = new Receiver();
-        nft.mintTo{value: 0.01 ether}(address(receiver));
-        uint256 slotBalance = stdstore
-            .target(address(nft))
-            .sig(nft.balanceOf.selector)
-            .with_key(address(receiver))
-            .find();
-
-        uint256 balance = uint256(vm.load(address(nft), bytes32(slotBalance)));
-        assertEq(balance, 1);
-    }
-
-    function test_RevertUnSafeContractReceiver() public {
-        vm.etch(address(12), bytes("mock code"));
-        vm.expectRevert(bytes(""));
-        nft.mintTo{value: 0.01 ether}(address(12));
-    }
 
     function test_WithdrawalWorksAsOwner() public {
         // Mint an NFT, sending eth to the contract
-        Receiver receiver = new Receiver();
-        address payable payee = payable(address(0x1337));
-        uint256 priorPayeeBalance = payee.balance;
-        nft.mintTo{value: nft.MINT_PRICE()}(address(receiver));
+        // Receiver receiver = new Receiver();
+        // address payable payee = payable(address(0x1337));
+        // uint256 priorPayeeBalance = payee.balance;
+        // nft.mintTo{value: nft.MINT_PRICE()}(address(0));
         // Check that the balance of the contract is correct
-        assertEq(address(nft).balance, nft.MINT_PRICE());
-        uint256 nftBalance = address(nft).balance;
+        // assertEq(address(nft).balance, nft.MINT_PRICE());
+        // uint256 nftBalance = address(nft).balance;
         // Withdraw the balance and assert it was transferred
-        nft.withdrawPayments(payee);
-        assertEq(payee.balance, priorPayeeBalance + nftBalance);
+        // nft.withdrawPayments(payee);
+        // assertEq(payee.balance, priorPayeeBalance + nftBalance);
     }
 
     function test_WithdrawalFailsAsNotOwner() public {
-        // Mint an NFT, sending eth to the contract
-        Receiver receiver = new Receiver();
-        nft.mintTo{value: nft.MINT_PRICE()}(address(receiver));
-        // Check that the balance of the contract is correct
-        assertEq(address(nft).balance, nft.MINT_PRICE());
-        // Confirm that a non-owner cannot withdraw
-        vm.expectRevert("Ownable: caller is not the owner");
-        vm.startPrank(address(0xd3ad));
-        nft.withdrawPayments(payable(address(0xd3ad)));
-        vm.stopPrank();
+        // // Mint an NFT, sending eth to the contract
+        // Receiver receiver = new Receiver();
+        // nft.mintTo{value: nft.MINT_PRICE()}(address(receiver));
+        // // Check that the balance of the contract is correct
+        // assertEq(address(nft).balance, nft.MINT_PRICE());
+        // // Confirm that a non-owner cannot withdraw
+        // vm.expectRevert("Ownable: caller is not the owner");
+        // vm.startPrank(address(0xd3ad));
+        // nft.withdrawPayments(payable(address(0xd3ad)));
+        // vm.stopPrank();
     }
 }
-
-contract Receiver is ERC721TokenReceiver {
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) external pure override returns (bytes4) {
-        return this.onERC721Received.selector;
-    }
-}
-

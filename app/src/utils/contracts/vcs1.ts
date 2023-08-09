@@ -4,29 +4,13 @@
 
 export const abi = [
   {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "_name",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_symbol",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_baseURI",
-        "type": "string"
-      }
-    ],
+    "inputs": [],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
   {
     "inputs": [],
-    "name": "InvalidAddress",
+    "name": "HashVerificationFailed",
     "type": "error"
   },
   {
@@ -41,17 +25,37 @@ export const abi = [
   },
   {
     "inputs": [],
+    "name": "NewMintersOnly",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "NonExistentTokenURI",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "SingleNFTOwnershipOnly",
+    "name": "PublicMintsActive",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "WhitelistPause",
+    "name": "PublicMintsPaused",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UsedHash",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "WhitelistTransfersActive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "WhitelistTransfersPaused",
     "type": "error"
   },
   {
@@ -132,13 +136,38 @@ export const abi = [
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
-        "name": "account",
+        "name": "minter",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
       }
     ],
-    "name": "Paused",
+    "name": "PublicMint",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "oldRoot",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "newRoot",
+        "type": "bytes32"
+      }
+    ],
+    "name": "RootUpdated",
     "type": "event"
   },
   {
@@ -170,13 +199,25 @@ export const abi = [
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
-        "name": "account",
+        "name": "minter",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
       }
     ],
-    "name": "Unpaused",
+    "name": "WhitelistMint",
     "type": "event"
   },
   {
@@ -256,24 +297,6 @@ export const abi = [
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address[]",
-        "name": "addresses",
-        "type": "address[]"
-      },
-      {
-        "internalType": "bool",
-        "name": "flag",
-        "type": "bool"
-      }
-    ],
-    "name": "bulkUpdateWhitelist",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "currentTokenId",
     "outputs": [
@@ -295,6 +318,25 @@ export const abi = [
       }
     ],
     "name": "getApproved",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "hashToMinter",
     "outputs": [
       {
         "internalType": "address",
@@ -333,16 +375,29 @@ export const abi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "addr",
+        "name": "minter",
         "type": "address"
       }
     ],
-    "name": "isWhitelisted",
+    "name": "isMinter",
     "outputs": [
       {
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "merkleRoot",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -365,6 +420,49 @@ export const abi = [
       }
     ],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "mintTo",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "minter",
+        "type": "address"
+      }
+    ],
+    "name": "minterToHash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -414,14 +512,21 @@ export const abi = [
   },
   {
     "inputs": [],
-    "name": "pause",
+    "name": "pausePublicMints",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "paused",
+    "name": "pauseWhitelistTransfers",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "publicMintsPaused",
     "outputs": [
       {
         "internalType": "bool",
@@ -544,49 +649,6 @@ export const abi = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "tokenByIndex",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "tokenOfOwnerByIndex",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
       }
@@ -597,19 +659,6 @@ export const abi = [
         "internalType": "string",
         "name": "",
         "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalSupply",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -653,7 +702,14 @@ export const abi = [
   },
   {
     "inputs": [],
-    "name": "unpause",
+    "name": "unpausePublicMints",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "unpauseWhitelistTransfers",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -661,12 +717,32 @@ export const abi = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
+        "internalType": "string",
+        "name": "_baseURI",
+        "type": "string"
       }
     ],
-    "name": "whitelistedAddresses",
+    "name": "updateBaseURI",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "newRoot",
+        "type": "bytes32"
+      }
+    ],
+    "name": "updateMerkleRoot",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "whitelistTransfersPaused",
     "outputs": [
       {
         "internalType": "bool",
@@ -693,7 +769,7 @@ export const abi = [
 ]
 
 export const deployed = {
-  chainId: 5,
-  address: "0xd38b839b7e7eF7300B6819A360620AF8035c506c",
+  chainId: 31337,
+  address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
   abi
 }
