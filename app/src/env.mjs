@@ -13,6 +13,9 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string().min(1)
         : z.string().min(1).optional(),
+    TWITTER_CLIENT_ID: z.string().min(1),
+    TWITTER_COOKIE_SECRET: z.string().min(1),
+    EDGE_CONFIG: z.string().min(1)
   },
 
   /**
@@ -21,9 +24,9 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
     NEXT_PUBLIC_ALCHEMY_ID: z.string().min(1),
-    NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: z.string().min(1)
+    NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: z.string().min(1),
+    NEXT_PUBLIC_TWITTER_CLIENT_ID: z.string().min(1)
   },
 
   /**
@@ -35,7 +38,11 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     SESSION_SECRET: process.env.SESSION_SECRET,
     NEXT_PUBLIC_ALCHEMY_ID: process.env.NEXT_PUBLIC_ALCHEMY_ID,
-    NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
+    NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
+    TWITTER_CLIENT_ID: process.env.TWITTER_CLIENT_ID,
+    TWITTER_COOKIE_SECRET: process.env.TWITTER_COOKIE_SECRET,
+    EDGE_CONFIG: process.env.EDGE_CONFIG,
+    NEXT_PUBLIC_TWITTER_CLIENT_ID: process.env.NEXT_PUBLIC_TWITTER_CLIENT_ID
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

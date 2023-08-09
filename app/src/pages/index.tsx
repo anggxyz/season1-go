@@ -11,6 +11,8 @@ import { useWhitelistStatus } from "~src/hooks/useWhitelistStatus";
 import { useMint } from "~src/hooks/useMint";
 import { useIsOwner } from "~src/hooks/useIsOwner";
 import { useIsPaused } from "~src/hooks/useIsPaused";
+import ConnectTwitterButton from "~src/components/ConnectTwitterButton";
+import { useMeQuery } from "~src/hooks/useTwitterInfo";
 
 const MESSAGES = {
   whitelisted: 'You are in the Whitelist',
@@ -109,7 +111,10 @@ export default function Home() {
   const mintPrice = useMintPrice();
   const {isMinting, isError, mint} = useMint();
   const {isOwner,tokenId} = useIsOwner();
-
+  const d = useMeQuery();
+  console.log({
+    twitterData: d
+  })
   useEffect(() => {
     if (isAccountConnected) {
       setMintButtonLabel("Mint");
@@ -202,7 +207,8 @@ export default function Home() {
                 <Button onClick={closeConnectWalletWindow}><span className='close-icon' /></Button>
               </WindowHeader>
               <WindowContent className="window-content">
-                <ConnectKitButton showAvatar showBalance />
+                {/* <ConnectKitButton showAvatar showBalance /> */}
+                <ConnectTwitterButton />
               </WindowContent>
             </Window>}
             {isError && <Window style={{

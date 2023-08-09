@@ -11,9 +11,12 @@
   "dependencies": {
     "@t3-oss/env-nextjs": "^0.3.1",
     "@vercel/edge-config": "^0.2.1",
+    "axios": "^1.4.0",
     "connectkit": "^1.5.0",
     "connectkit-next-siwe": "^0.2.0",
     "ethers": "^6.6.5",
+    "jsonwebtoken": "^9.0.1",
+    "lodash": "^4.17.21",
     "next": "^13.4.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -26,6 +29,8 @@
   },
   "devDependencies": {
     "@types/eslint": "^8.37.0",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/lodash": "^4.14.196",
     "@types/node": "^18.16.0",
     "@types/prettier": "^2.7.2",
     "@types/react": "^18.2.6",
