@@ -825,7 +825,7 @@ export const abi = [
 ]
 
 export const deployed = {
-  chainId: 31337,
-  address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  chainId: 5,
+  address: "0x6D872ee6B9F2EC16deC6F736588766f1E23EEB93",
   abi
 }
