@@ -3,6 +3,7 @@ import { pick } from "lodash";
 import { type NextApiRequest, type NextApiResponse } from "next";
 import jwt from 'jsonwebtoken'
 import { TWITTER_OAUTH_TOKEN_URL, type TwitterTokenResponse, twitterOauthTokenParams, TWITTER_ME_URL, type TwitterUser } from "~src/server/utils/twitterAuth";
+import { TWITTER_COOKIE_NAME } from "~src/utils/twitterAuth";
 
 export async function getTwitterOAuthToken(code: string) {
   try {
@@ -62,7 +63,7 @@ export default async function twitter(req: NextApiRequest, res: NextApiResponse)
     username: twitterUser.username
   }, process.env.TWITTER_COOKIE_SECRET!);
 
-  res.setHeader('Set-Cookie', `twitter_token=${token}; path=/; samesite=lax; httponly; Max-Age=259200`)
+  res.setHeader('Set-Cookie', `${TWITTER_COOKIE_NAME}=${token}; path=/; samesite=lax; httponly; Max-Age=259200`)
 
-  return res.status(200).json({ok: true, TwitterOAuthToken, twitterUser, token})
+  return res.redirect("/");
 }

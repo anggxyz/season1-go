@@ -13,3 +13,5 @@ export const getTwitterOauthUrl = () => {
   const qs = new URLSearchParams(options).toString();
   return `${rootUrl}?${qs}`;
 }
+
+export const TWITTER_COOKIE_NAME =  "twitter_token"

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { ConnectKitButton } from "connectkit";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Button, Window, WindowContent, WindowHeader, Hourglass, GroupBox } from "react95";
@@ -11,8 +10,8 @@ import { useWhitelistStatus } from "~src/hooks/useWhitelistStatus";
 import { useMint } from "~src/hooks/useMint";
 import { useIsOwner } from "~src/hooks/useIsOwner";
 import { useIsPaused } from "~src/hooks/useIsPaused";
-import ConnectTwitterButton from "~src/components/ConnectTwitterButton";
-import { useMeQuery } from "~src/hooks/useTwitterInfo";
+import { ConnectAccountsWindow } from "~src/components/ConnectAccountsWindow";
+import { ErrorWindow } from "~src/components/ErrorWindow";
 
 const MESSAGES = {
   whitelisted: 'You are in the Whitelist',
@@ -26,12 +25,6 @@ const Wrapper = styled.div`
     height: 600px;
     display: flex;
     flex-direction: column;
-  }
-  .connect-wallet-window {
-    width: 300px;
-    height: min-content;
-    margin-top: 50px;
-    margin-left: 50px;
   }
   .window-title {
     display: flex;
@@ -94,15 +87,12 @@ const Wrapper = styled.div`
       height: 450px;
       padding: 0;
     }
-    .connect-wallet-window {
-      margin-top: 0;
-      margin-left: 0;
-    }
   }
 `
 
 export default function Home() {
   const [displayConnectWalletWindow, setDisplayConnectWalletWindow] = useState<boolean>(false);
+  const [displayErrorWindow, setDisplayErrorWindow] = useState<boolean>(false);
   const { address, isDisconnected } = useAccount()
   const isAccountConnected = Boolean(address) || Boolean(!isDisconnected);
   const [mintButtonLabel, setMintButtonLabel] = useState<string>("Mint");
@@ -111,10 +101,9 @@ export default function Home() {
   const mintPrice = useMintPrice();
   const {isMinting, isError, mint} = useMint();
   const {isOwner,tokenId} = useIsOwner();
-  const d = useMeQuery();
-  console.log({
-    twitterData: d
-  })
+  useEffect(() => {
+    setDisplayErrorWindow(isError);
+  }, [isError])
   useEffect(() => {
     if (isAccountConnected) {
       setMintButtonLabel("Mint");
@@ -201,29 +190,17 @@ export default function Home() {
             flexDirection: 'column',
             gap: '8px'
           }}>
-            {displayConnectWalletWindow && <Window className="connect-wallet-window">
-              <WindowHeader className="window-title">
-                {isAccountConnected ? <span>Connected Account</span> : <span>Connect Wallet</span>}
-                <Button onClick={closeConnectWalletWindow}><span className='close-icon' /></Button>
-              </WindowHeader>
-              <WindowContent className="window-content">
-                {/* <ConnectKitButton showAvatar showBalance /> */}
-                <ConnectTwitterButton />
-              </WindowContent>
-            </Window>}
-            {isError && <Window style={{
-              height: "min-content",
-              width: "100%",
-              padding: "8px",
-              display: "flex",
-              flexDirection: "column"
-            }} >
-            <WindowHeader className="window-title">
-              <span>Error</span>
-            </WindowHeader>
-            <p>There was an error</p>
-            <Button primary>Try again?</Button>
-          </Window>}
+
+            {
+              displayConnectWalletWindow &&
+              <ConnectAccountsWindow
+                onClose={closeConnectWalletWindow}
+                displayConnectedAccount={isAccountConnected}
+              />
+            }
+            {
+              displayErrorWindow && <ErrorWindow onClose={() => setDisplayErrorWindow(false)} />
+            }
           </div>
         </Wrapper>
         </>
