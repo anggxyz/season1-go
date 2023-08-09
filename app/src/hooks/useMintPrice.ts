@@ -2,11 +2,10 @@ import { useContractRead } from 'wagmi';
 import { deployed } from '~src/utils/contracts/vcs1';
 import { formatEther } from 'viem';
 import { useEffect, useState } from 'react';
+import { useWhitelistStatus } from './useWhitelistStatus';
 
-// @todo fix this
 export const useMintPrice = (): string => {
-  // const {status} = useWhitelistStatus();
-  const status = false;
+  const status = useWhitelistStatus();
   const [mintPrice, setMintPrice] = useState<string>("");
 
   const { data, isLoading, error } = useContractRead({

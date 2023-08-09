@@ -7,7 +7,7 @@ import axios from "axios";
 export const useDataStore = ({ key }: { key: string })=> {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<unknown>(null);
 
   useEffect(() => {
     axios

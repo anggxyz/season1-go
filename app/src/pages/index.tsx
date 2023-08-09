@@ -6,16 +6,16 @@ import Main from "src/layouts/Main";
 import styled from 'styled-components';
 import { useAccount } from 'wagmi'
 import { useMintPrice } from "~src/hooks/useMintPrice";
-import { useDataStore } from "~src/hooks/useDataStore";
 import { useMint } from "~src/hooks/useMint";
 import { useIsOwner } from "~src/hooks/useIsOwner";
 import { useIsPaused } from "~src/hooks/useIsPaused";
 import { ConnectAccountsWindow } from "~src/components/ConnectAccountsWindow";
 import { ErrorWindow } from "~src/components/ErrorWindow";
+import { useWhitelistStatus } from "~src/hooks/useWhitelistStatus";
 
 const MESSAGES = {
-  whitelisted: 'You are in the Whitelist',
-  nonWhitelisted: 'Your Address is not whitelisted, mint the NFT below and enter the game (todo, add better description here)'
+  whitelisted: 'Your twitter account is in the Whitelist',
+  nonWhitelisted: 'Your twitter account is not whitelisted, mint the NFT below and enter the game'
 }
 const Wrapper = styled.div`
   display: flex;
@@ -97,7 +97,7 @@ export default function Home() {
   const isAccountConnected = Boolean(address) || Boolean(!isDisconnected);
   const [mintButtonLabel, setMintButtonLabel] = useState<string>("Mint");
   const paused = useIsPaused();
-  const { data } = useDataStore({key: "whitelist"});
+  const status = useWhitelistStatus();
   const mintPrice = useMintPrice();
   const {isMinting, isError, mint} = useMint();
   const {isOwner,tokenId} = useIsOwner();
@@ -150,7 +150,7 @@ export default function Home() {
                 Contract pause status: {String(paused)}
               </p>
               <p>
-                {JSON.stringify(data)}
+                {getWhitelistInfoMessage(status)}
               </p>
             </GroupBox>
           </WindowContent>
