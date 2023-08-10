@@ -12,6 +12,7 @@ import { useIsPaused } from "~src/hooks/useIsPaused";
 import { ConnectAccountsWindow } from "~src/components/ConnectAccountsWindow";
 import { ErrorWindow } from "~src/components/ErrorWindow";
 import { useWhitelistStatus } from "~src/hooks/useWhitelistStatus";
+import { useConnectedTwitterAccount } from "~src/hooks/useConnectedTwitterAccount";
 
 const MESSAGES = {
   whitelisted: 'Your twitter account is in the Whitelist',
@@ -108,8 +109,8 @@ export default function Home() {
   const {mintPrice} = useMintPrice();
   const {publicMint, whitelistMint, publicMintIsError, whitelistMintIsError, publicMintIsLoading, whitelistMintIsLoading} = useMint();
   const isMinting = publicMintIsLoading || whitelistMintIsLoading;
-
   const {isOwner,tokenId} = useIsOwnerOfToken();
+  const {isConnected: isTwitterConnected} = useConnectedTwitterAccount();
 
   useEffect(() => {
     setDisplayErrorWindow(publicMintIsError || whitelistMintIsError);
@@ -122,8 +123,11 @@ export default function Home() {
     if (!isAccountConnected) {
       setMintButtonLabel("Connect");
     }
-  }, [isAccountConnected])
-
+    if (isTwitterConnected && !status && paused) {
+      setMintButtonLabel("Paused for public mints");
+    }
+  }, [isAccountConnected, status, paused, isTwitterConnected])
+  const isButtonDisabled = Boolean(isTwitterConnected && !status && paused);
 
   const closeConnectWalletWindow = () => setDisplayConnectWalletWindow(false);
   const openConnectWalletWindow = () => {
@@ -184,7 +188,7 @@ export default function Home() {
               <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
               <Button active>Mint Price: {mintPrice}</Button>
               {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-              <Button className="mint-button" onClick={onClickMint}>
+              <Button className="mint-button" onClick={onClickMint} disabled={isButtonDisabled}>
                 {isMinting ? <Hourglass size={32} style={{ margin: 20 }} /> : mintButtonLabel}
               </Button>
             </div>
