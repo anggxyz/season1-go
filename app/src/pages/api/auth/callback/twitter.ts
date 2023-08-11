@@ -55,7 +55,7 @@ export default async function twitter(req: NextApiRequest, res: NextApiResponse)
   }
 
   // this if block is only to satisfy typescript,
-  // flow shouldn ever reach here 
+  // flow shouldn ever reach here
   if (!TwitterOAuthToken || !twitterUser) {
     throw "TwitterOauthtoken or twitter user not found";
   }

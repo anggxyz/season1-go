@@ -1,3 +1,5 @@
+import { URL } from "~src/utils/getUrl";
+
 export interface TwitterTokenResponse {
   token_type: "bearer";
   expires_in: 7200;
@@ -13,7 +15,7 @@ export const twitterOauthTokenParams = {
   client_id: process.env.TWITTER_CLIENT_ID!,
   // @todo
   code_verifier: "8KxxO-RPl0bLSxX5AWwgdiFbMnry_VOKzFeIlVA7NoA",
-  redirect_uri: `http://localhost:3000/api/auth/callback/twitter`,
+  redirect_uri: `${URL}/api/auth/callback/twitter`,
   grant_type: "authorization_code",
 };
 
