@@ -124,20 +124,25 @@ export default function Home() {
   }, [publicMintIsError, whitelistMintIsError])
 
   useEffect(() => {
-    if (connectStatus.wallet === "CONNECTED" && connectStatus.twitter === "CONNECTED") {
-      if (!status && publicMintsPaused) {
-        return setMintButtonLabel("Paused for public mints");
-      }
+    if (Object.values(connectStatus).every((st) => st === "DISCONNECTED")) {
+      return setMintButtonLabel("Connect");
+    }
+
+    if (!status && publicMintsPaused) {
+      return setMintButtonLabel("Paused for public mints");
+    }
+    if (Object.values(connectStatus).every((st) => st === "CONNECTED")) {
       return setMintButtonLabel("Mint");
     }
-    return setMintButtonLabel("Connect");
+
   }, [
     connectStatus.twitter,
     connectStatus.wallet,
     status,
     publicMintsPaused,
     isWalletConnected,
-    isTwitterConnected
+    isTwitterConnected,
+    connectStatus
   ])
 
   const isButtonDisabled = Boolean(connectStatus.twitter==="CONNECTED" && !status && publicMintsPaused);

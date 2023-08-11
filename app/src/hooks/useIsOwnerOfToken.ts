@@ -232,7 +232,7 @@ export const useIsOwnerOfToken = (): {
       && !minterToTokenIdError
     ) {
       if (minterToTokenId) {
-        setTokenId(Number(tokenOfOwnerByIndex) ?? Number(minterToTokenId));
+        setTokenId(Number(minterToTokenId));
         return setOwnershipType((curr) => {
           return {
             ...curr,
