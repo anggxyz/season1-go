@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { Button, Window, WindowContent, WindowHeader, Hourglass, GroupBox } from "react95";
+import { Button, Window, WindowContent, WindowHeader, Hourglass, GroupBox, Checkbox } from "react95";
 import Main from "src/layouts/Main";
 import styled from 'styled-components';
 import { useAccount } from 'wagmi'
@@ -102,6 +102,8 @@ export const Wrapper = styled.div`
 export default function Home() {
   const [displayConnectWalletWindow, setDisplayConnectWalletWindow] = useState<boolean>(false);
   const [displayErrorWindow, setDisplayErrorWindow] = useState<boolean>(false);
+  const [displayInfoBox, setDisplayInfoBox] = useState<boolean>(false);
+
   const { isConnected: isWalletConnected } = useAccount()
   const [mintButtonLabel, setMintButtonLabel] = useState<string>("Mint");
   const {
@@ -112,7 +114,7 @@ export default function Home() {
   const {formatted: mintPrice} = useMintPrice();
   const {publicMint, whitelistMint, publicMintIsError, whitelistMintIsError, publicMintIsLoading, whitelistMintIsLoading} = useMint();
   const isMinting = publicMintIsLoading || whitelistMintIsLoading;
-  const {isOwner,tokenId} = useIsOwnerOfToken();
+  const { isOwner, tokenId, ownershipType } = useIsOwnerOfToken();
   const {isConnected: isTwitterConnected} = useConnectedTwitterAccount();
 
   const connectStatus = useAccountsConnectedStatus();
@@ -155,7 +157,6 @@ export default function Home() {
     } else {
       return publicMint();
     }
-    return;
   }
 
   return (
@@ -194,7 +195,17 @@ export default function Home() {
             </WindowContent>
             {
               isOwner ?
-              <Button active>You own tokenId: {tokenId}</Button>
+              <div style={{
+                display: "flex",
+                flexDirection: "row",
+                gap: "8px",
+                margin: "8px 0 8px 0"
+              }}>
+              <Button active fullWidth>You own tokenId: {tokenId}</Button>
+              <Button square onClick={() => {
+                setDisplayInfoBox((box) => !box)
+              }}>ℹ️</Button>
+              </div>
               :
               <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
                 <Button active>{mintPrice}</Button>
@@ -227,6 +238,61 @@ export default function Home() {
             }
             {
               displayErrorWindow && <ErrorWindow onClose={() => setDisplayErrorWindow(false)} />
+            }
+            {
+              displayInfoBox &&
+              <Window style={{
+                height: "min-content",
+                width: "450px",
+                padding: "8px",
+                display: "flex",
+                flexDirection: "column"
+              }}>
+                <WindowHeader className="window-title">
+                  <span>Info</span>
+                  <Button onClick={() => setDisplayInfoBox(false)}>
+                    <span className='close-icon' />
+                  </Button>
+                </WindowHeader>
+                  <GroupBox label='Ownership Order'>
+                    <div style={{
+                      paddingLeft: '1.5rem',
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}>
+                      <Checkbox
+                        checked={!!ownershipType.AddressMinted}
+                        value='addressMinted'
+                        label='Address minted'
+                        name='addressMinted'
+                      />
+                      <Checkbox
+                        checked={!!ownershipType.WalletOwns}
+                        value='walletOwns'
+                        label='Wallet owns'
+                        name='walletOwns'
+                      />
+                      <Checkbox
+                        checked={!!ownershipType.TwitterMinted}
+                        value='twitterMinted'
+                        label='Twitter minted'
+                        name='twitter minted'
+                      />
+                    </div>
+                  </GroupBox>
+                <div style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: "8px"
+                }}>
+                  <Button primary onClick={() => setDisplayInfoBox(false)} fullWidth>
+                    Okay
+                  </Button>
+                  <Button primary onClick={() => setDisplayInfoBox(false)} fullWidth>
+                    Okay
+                  </Button>
+                </div>
+              </Window>
             }
           </div>
         </Wrapper>

@@ -3,7 +3,7 @@
 import { useEffect, useReducer, useState } from 'react';
 import axios from "axios";
 
-
+// key = twitter username
 export const useComputeHash = ({ key }: { key?: string }): {
   hash?: string,
   error: string | null,
