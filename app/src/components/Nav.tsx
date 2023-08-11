@@ -2,6 +2,7 @@ import Link from 'next/link';
 import React from 'react';
 import { AppBar, Button, Toolbar } from 'react95';
 import { useRouter } from 'next/router'
+import { CHAIN } from '~src/utils/onChainConfig';
 // import { useIsTokenGated } from '~src/hooks/useIsTokenGated';
 
 type NavItem = "home" | "about" | "kya";
@@ -11,6 +12,13 @@ const getActiveNavItem = (path: string): NavItem | undefined => {
   if (path.includes("about")) return "about";
   if (path.includes("kya")) return "kya";
   return;
+}
+
+const ActiveChain = () => {
+  if (!CHAIN?.name) {
+    return <></>
+  }
+  return <Button variant='menu' active={false} style={{margin: "5px"}}>Active chain: {CHAIN.name.toString()}</Button>
 }
 
 export default function Nav() {
@@ -31,6 +39,7 @@ export default function Nav() {
             <Button variant='menu' active={activeNavItem === "kya"} disabled>Your KYA Score</Button>
           </Link>
         </div>
+        <ActiveChain />
       </Toolbar>
     </AppBar>
   )

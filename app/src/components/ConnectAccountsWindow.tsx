@@ -6,10 +6,8 @@ import { useAccountsConnectedStatus } from "~src/hooks/useAccountsConnectedStatu
 
 export const ConnectAccountsWindow = ({
   onClose,
-  displayConnectedAccount
 }: {
   onClose: () => void,
-  displayConnectedAccount: boolean
 }) => {
   const connectStatus = useAccountsConnectedStatus();
 
@@ -22,9 +20,9 @@ export const ConnectAccountsWindow = ({
     }}>
       <WindowHeader className="window-title">
         <span>
-          {displayConnectedAccount ? "Connected Accounts" : "Connect Accounts"}
+          Accounts
         </span>
-        <Button onClick={onClose}><span className='close-icon' /></Button>
+        <Button onClick={onClose}><span className='close-icon'></span></Button>
       </WindowHeader>
       <WindowContent className="window-content">
         <div style={{

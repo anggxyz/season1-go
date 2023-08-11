@@ -6,7 +6,7 @@ import { useWhitelistStatus } from './useWhitelistStatus';
 
 export const useMintPrice = () => {
   const status = useWhitelistStatus();
-  const [mintPrice, setMintPrice] = useState<string>("");
+  const [formatted, setMintPrice] = useState<string>("Connect accounts to view mint price");
   const [parsed, setParsed] = useState<bigint>(parseEther("0"));
 
   const { data, isLoading, error } = useContractRead({
@@ -18,13 +18,13 @@ export const useMintPrice = () => {
   useEffect(() => {
     if (status) {
       setParsed(parseEther("0"))
-      return setMintPrice("0 ether");
+      return setMintPrice("Mint Price: 0 ether");
     }
     if (data && !isLoading && !error) {
       setParsed(data as bigint);
-      return setMintPrice(formatEther(data as bigint) + " ether");
+      return setMintPrice("Mint Price: " + formatEther(data as bigint) + " ether");
     }
   }, [data, isLoading, error, status])
 
-  return { mintPrice, parsed };
+  return { formatted, parsed };
 };

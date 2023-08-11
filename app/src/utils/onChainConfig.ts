@@ -5,7 +5,7 @@ import { foundry, goerli } from "wagmi/chains";
 import { deployed } from "./contracts/vcs1";
 
 const supportedChains = [foundry, goerli];
-const CHAIN = supportedChains.find((chain) => chain.id === deployed.chainId);
+export const CHAIN = supportedChains.find((chain) => chain.id === deployed.chainId);
 
 if (!CHAIN) {
   throw "CHAIN not found, fix `supportedChains`";

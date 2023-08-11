@@ -13,6 +13,7 @@ import { ConnectAccountsWindow } from "~src/components/ConnectAccountsWindow";
 import { ErrorWindow } from "~src/components/ErrorWindow";
 import { useWhitelistStatus } from "~src/hooks/useWhitelistStatus";
 import { useConnectedTwitterAccount } from "~src/hooks/useConnectedTwitterAccount";
+import { useAccountsConnectedStatus } from "~src/hooks/useAccountsConnectedStatus";
 
 const MESSAGES = {
   whitelisted: 'Your twitter account is in the Whitelist',
@@ -101,33 +102,43 @@ export const Wrapper = styled.div`
 export default function Home() {
   const [displayConnectWalletWindow, setDisplayConnectWalletWindow] = useState<boolean>(false);
   const [displayErrorWindow, setDisplayErrorWindow] = useState<boolean>(false);
-  const { address, isDisconnected } = useAccount()
-  const isAccountConnected = Boolean(address) || Boolean(!isDisconnected);
+  const { isConnected: isWalletConnected } = useAccount()
   const [mintButtonLabel, setMintButtonLabel] = useState<string>("Mint");
-  const paused = useIsPaused();
+  const {
+    whitelistTransfers: whitelistTransfersPaused,
+    publicMints: publicMintsPaused
+  } = useIsPaused();
   const status = useWhitelistStatus();
-  const {mintPrice} = useMintPrice();
+  const {formatted: mintPrice} = useMintPrice();
   const {publicMint, whitelistMint, publicMintIsError, whitelistMintIsError, publicMintIsLoading, whitelistMintIsLoading} = useMint();
   const isMinting = publicMintIsLoading || whitelistMintIsLoading;
   const {isOwner,tokenId} = useIsOwnerOfToken();
   const {isConnected: isTwitterConnected} = useConnectedTwitterAccount();
+
+  const connectStatus = useAccountsConnectedStatus();
 
   useEffect(() => {
     setDisplayErrorWindow(publicMintIsError || whitelistMintIsError);
   }, [publicMintIsError, whitelistMintIsError])
 
   useEffect(() => {
-    if (isAccountConnected) {
-      setMintButtonLabel("Mint");
+    if (connectStatus.wallet === "CONNECTED" && connectStatus.twitter === "CONNECTED") {
+      if (!status && publicMintsPaused) {
+        return setMintButtonLabel("Paused for public mints");
+      }
+      return setMintButtonLabel("Mint");
     }
-    if (!isAccountConnected) {
-      setMintButtonLabel("Connect");
-    }
-    if (isTwitterConnected && !status && paused) {
-      setMintButtonLabel("Paused for public mints");
-    }
-  }, [isAccountConnected, status, paused, isTwitterConnected])
-  const isButtonDisabled = Boolean(isTwitterConnected && !status && paused);
+    return setMintButtonLabel("Connect");
+  }, [
+    connectStatus.twitter,
+    connectStatus.wallet,
+    status,
+    publicMintsPaused,
+    isWalletConnected,
+    isTwitterConnected
+  ])
+
+  const isButtonDisabled = Boolean(connectStatus.twitter==="CONNECTED" && !status && publicMintsPaused);
 
   const closeConnectWalletWindow = () => setDisplayConnectWalletWindow(false);
   const openConnectWalletWindow = () => {
@@ -135,7 +146,7 @@ export default function Home() {
   }
 
   const onClickMint = () => {
-    if (!isAccountConnected) {
+    if (connectStatus.wallet === "DISCONNECTED") {
       openConnectWalletWindow();
       return;
     }
@@ -160,10 +171,10 @@ export default function Home() {
           <WindowContent>
           <GroupBox label="Your whitelist status">
               <p>
-                Public mints paused: {String(paused.publicMints)}
+                Public mints paused: {String(publicMintsPaused)}
               </p>
               <p>
-                Whitelist transfer paused: {String(paused.whitelistTransfers)}
+                Whitelist transfer paused: {String(whitelistTransfersPaused)}
               </p>
               <p>
                 {getWhitelistInfoMessage(status)}
@@ -186,15 +197,15 @@ export default function Home() {
               <Button active>You own tokenId: {tokenId}</Button>
               :
               <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
-              <Button active>Mint Price: {mintPrice}</Button>
-              {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-              <Button className="mint-button" onClick={onClickMint} disabled={isButtonDisabled}>
-                {isMinting ? <Hourglass size={32} style={{ margin: 20 }} /> : mintButtonLabel}
-              </Button>
-            </div>
+                <Button active>{mintPrice}</Button>
+                {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
+                <Button className="mint-button" onClick={onClickMint} disabled={isButtonDisabled}>
+                  {isMinting ? <Hourglass size={32} style={{ margin: 20 }} /> : mintButtonLabel}
+                </Button>
+              </div>
             }
             {
-              isAccountConnected && !displayConnectWalletWindow &&
+              (connectStatus.wallet === "CONNECTED" || connectStatus.twitter === "CONNECTED") && !displayConnectWalletWindow &&
                 <Button onClick={() => openConnectWalletWindow()}>
                   View Connected Accounts
                 </Button>
@@ -212,10 +223,7 @@ export default function Home() {
 
             {
               displayConnectWalletWindow &&
-              <ConnectAccountsWindow
-                onClose={closeConnectWalletWindow}
-                displayConnectedAccount={isAccountConnected}
-              />
+              <ConnectAccountsWindow onClose={closeConnectWalletWindow} />
             }
             {
               displayErrorWindow && <ErrorWindow onClose={() => setDisplayErrorWindow(false)} />
