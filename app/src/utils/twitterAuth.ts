@@ -1,10 +1,10 @@
-const isProd = process.env.NODE_ENV === "production"
-const URL = isProd ? process.env.VERCEL_URL : "http://localhost:3000"
+import { URL } from "./getUrl";
 
+const redirectURL = `${URL}/api/auth/callback/twitter`
 export const getTwitterOauthUrl = () => {
   const rootUrl = "https://twitter.com/i/oauth2/authorize";
   const options = {
-    redirect_uri: `${URL}/api/auth/callback/twitter`,
+    redirect_uri: `${redirectURL}`,
     client_id: process.env.NEXT_PUBLIC_TWITTER_CLIENT_ID!,
     state: "state",
     response_type: "code",
