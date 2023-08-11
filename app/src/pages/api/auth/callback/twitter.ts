@@ -47,13 +47,13 @@ export default async function twitter(req: NextApiRequest, res: NextApiResponse)
   console.log({TwitterOAuthToken});
 
   if (!TwitterOAuthToken) {
-    return res.status(200).json({ok: false});
+    return res.status(200).json({ok: false, reason: "twitter oauth token not found"});
   }
 
   const twitterUser = await getTwitterUser(TwitterOAuthToken.access_token);
 
   if (!twitterUser) {
-    return res.status(200).json({ok: false});
+    return res.status(200).json({ok: false, reason: "twitter user not found"});
   }
 
   const token = jwt.sign({ // Signing the token to send to client side
