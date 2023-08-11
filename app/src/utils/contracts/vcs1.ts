@@ -10,6 +10,11 @@ export const abi = [
   },
   {
     "inputs": [],
+    "name": "CallerNotAdmin",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "HashVerificationFailed",
     "type": "error"
   },
@@ -119,17 +124,11 @@ export const abi = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
+        "name": "admin",
         "type": "address"
       }
     ],
-    "name": "OwnershipTransferred",
+    "name": "NewAdminAdded",
     "type": "event"
   },
   {
@@ -149,6 +148,19 @@ export const abi = [
       }
     ],
     "name": "PublicMint",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "admin",
+        "type": "address"
+      }
+    ],
+    "name": "RenounceAdmin",
     "type": "event"
   },
   {
@@ -250,6 +262,19 @@ export const abi = [
     "inputs": [
       {
         "internalType": "address",
+        "name": "newAdmin",
+        "type": "address"
+      }
+    ],
+    "name": "addNewAdmin",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "to",
         "type": "address"
       },
@@ -342,6 +367,25 @@ export const abi = [
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "addr",
+        "type": "address"
+      }
+    ],
+    "name": "isAdmin",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -479,19 +523,6 @@ export const abi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -538,8 +569,14 @@ export const abi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "renounceOwnership",
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "oldAdmin",
+        "type": "address"
+      }
+    ],
+    "name": "renounceAdmin",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -744,19 +781,6 @@ export const abi = [
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "unpausePublicMints",
     "outputs": [],
@@ -826,7 +850,7 @@ export const abi = [
 
 export const deployed = {
   chainId: 5,
-  address: "0x6D872ee6B9F2EC16deC6F736588766f1E23EEB93",
+  address: "0x24E709007e017Bb54082d20d27f46DEbe2ad8D08",
   abi
 }
 

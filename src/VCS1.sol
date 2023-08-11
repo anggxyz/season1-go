@@ -3,7 +3,6 @@ pragma solidity 0.8.10;
 
 import "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import "openzeppelin-contracts/contracts/utils/Strings.sol";
-import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
 error MintPriceNotPaid();
@@ -17,8 +16,56 @@ error PublicMintsPaused();
 error PublicMintsActive();
 error WhitelistTransfersPaused();
 error WhitelistTransfersActive();
+error CallerNotAdmin();
 
-contract VCS1 is ERC721, Ownable, ERC721Enumerable {
+contract Admins {
+  event NewAdminAdded(address indexed admin);
+  event RenounceAdmin(address indexed admin);
+
+  mapping (address => bool) private admins;
+  constructor () {
+    _addAdmin(msg.sender);
+  }
+
+  modifier onlyAdmin() {
+    _checkAdmin();
+    _;
+  }
+
+  function _checkAdmin() internal view virtual {
+    if (admins[msg.sender] != true) {
+      revert CallerNotAdmin();
+    }
+  }
+
+  function _addAdmin(address newAdmin) internal virtual {
+    admins[newAdmin] = true;
+    emit NewAdminAdded(newAdmin);
+  }
+
+  function _renounceAdmin(address oldAdmin) internal virtual {
+    admins[oldAdmin] = false;
+    emit RenounceAdmin(oldAdmin);
+  }
+
+  function addNewAdmin(address newAdmin) public onlyAdmin {
+    _addAdmin(newAdmin);
+  }
+
+  /**
+   * @dev any admin can remove any other admin
+   * @param oldAdmin admin to remove
+   */
+  function renounceAdmin(address oldAdmin) public onlyAdmin {
+    _renounceAdmin(oldAdmin);
+  }
+
+  function isAdmin(address addr) public view returns (bool) {
+    return admins[addr];
+  }
+}
+
+contract VCS1 is ERC721, ERC721Enumerable, Admins {
     using Strings for uint256;
     string public baseURI;
     uint256 public currentTokenId;
@@ -46,6 +93,7 @@ contract VCS1 is ERC721, Ownable, ERC721Enumerable {
     constructor() ERC721("VCS1", "VCS1") {
         _whitelistTransfersPaused = true;
         _publicMintsPaused = true;
+        _addAdmin(msg.sender);
     }
     function supportsInterface(
         bytes4 interfaceId
@@ -100,34 +148,34 @@ contract VCS1 is ERC721, Ownable, ERC721Enumerable {
                 : "";
     }
 
-    function updateMerkleRoot(bytes32 newRoot) external onlyOwner {
+    function updateMerkleRoot(bytes32 newRoot) external onlyAdmin {
       bytes32 oldRoot = _root;
       _root = newRoot;
       emit RootUpdated(oldRoot, newRoot);
     }
 
-    function pausePublicMints() external onlyOwner {
+    function pausePublicMints() external onlyAdmin {
       if (publicMintsPaused()) {
         revert PublicMintsPaused();
       }
       _publicMintsPaused = true;
     }
 
-    function pauseWhitelistTransfers() external onlyOwner {
+    function pauseWhitelistTransfers() external onlyAdmin {
       if (whitelistTransfersPaused()) {
         revert WhitelistTransfersPaused();
       }
       _whitelistTransfersPaused = true;
     }
 
-    function unpausePublicMints() external onlyOwner {
+    function unpausePublicMints() external onlyAdmin {
       if (!publicMintsPaused()) {
         revert PublicMintsActive();
       }
       _publicMintsPaused = false;
     }
 
-    function unpauseWhitelistTransfers() external onlyOwner {
+    function unpauseWhitelistTransfers() external onlyAdmin {
       if (!whitelistTransfersPaused()) {
         revert WhitelistTransfersActive();
       }
@@ -139,7 +187,7 @@ contract VCS1 is ERC721, Ownable, ERC721Enumerable {
      *
      * @param _baseURI new uri to update
      */
-    function updateBaseURI(string memory _baseURI) external onlyOwner {
+    function updateBaseURI(string memory _baseURI) external onlyAdmin {
       baseURI = _baseURI;
     }
 
@@ -148,7 +196,7 @@ contract VCS1 is ERC721, Ownable, ERC721Enumerable {
      *
      * @param payee address to send funds to
      */
-    function withdrawPayments(address payable payee) external onlyOwner {
+    function withdrawPayments(address payable payee) external onlyAdmin {
         uint256 balance = address(this).balance;
         (bool transferTx, ) = payee.call{ value: balance }("");
         if (!transferTx) {
