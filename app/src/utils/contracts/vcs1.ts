@@ -510,6 +510,25 @@ export const abi = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "minter",
+        "type": "address"
+      }
+    ],
+    "name": "minterToTokenId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "name",
     "outputs": [
@@ -850,7 +869,7 @@ export const abi = [
 
 export const deployed = {
   chainId: 5,
-  address: "0x28f8c7Ea3FC4b4b59210Fbc591bbaE6eF693a294",
+  address: "0x99d86Eb0b415D9A942Fc61a238326764f3F3e74F",
   abi
 }
 

@@ -71,18 +71,23 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
     uint256 public currentTokenId;
     uint256 public constant TOTAL_SUPPLY = 1500;
     uint256 public constant MINT_PRICE = 0.01 ether;
+
     // updated when an address mints an NFT
     // includes all whitelisted and non-whitelisted
-    mapping (address => bool) internal _minter;
+    mapping (address => uint256) internal _minter;
+
     // updated when a hash is used to mint by an address (record of consumed hashes)
     // hashes are only used by whitelisted accounts
     mapping (bytes32 => address) internal _hashToMinter;
+
     // all whitelisted minters
     // updated when a hash is used to mint by an address (record of all whitelisted successful minters)
     // hashes are only used by whitelisted accounts
     mapping (address => bytes32) internal _minterToHash;
+
     bool private _whitelistTransfersPaused;
     bool private _publicMintsPaused;
+
     // whitelist merkle root
     bytes32 private _root;
 
@@ -109,7 +114,11 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
     }
 
     function isMinter(address minter) public view returns (bool) {
-      return _minter[minter] == true;
+      return _minter[minter] != 0;
+    }
+
+    function minterToTokenId(address minter) public view returns (uint256) {
+      return _minter[minter];
     }
 
     function merkleRoot() public view virtual returns (bytes32) {
@@ -250,10 +259,10 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
     }
 
     function _postMint(address recipient) internal {
-      _minter[recipient] = true;
+      _minter[recipient] = currentTokenId;
     }
-    function _postMint(address recipient, bytes32 hash) internal {
-      _minter[recipient] = true;
+    function _postMint(address recipient,bytes32 hash) internal {
+      _minter[recipient] = currentTokenId;
       _hashToMinter[hash] = recipient;
       _minterToHash[recipient] = hash;
     }
