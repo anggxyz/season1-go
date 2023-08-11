@@ -19,7 +19,7 @@ export async function getTwitterOAuthToken(code: string) {
     );
     return res.data;
   } catch (err) {
-    return null;
+    throw err
   }
 }
 
@@ -34,27 +34,32 @@ export async function getTwitterUser(accessToken: string): Promise<TwitterUser |
 
     return res.data.data ?? null;
   } catch (err) {
-    console.log(err);
-    return null;
+    throw err;
   }
 }
 
 
 export default async function twitter(req: NextApiRequest, res: NextApiResponse) {
   const { code } = pick(req.query, ["code"]) as  {code:string};
-
-  const TwitterOAuthToken = await getTwitterOAuthToken(code);
-  console.log({TwitterOAuthToken});
-
-  if (!TwitterOAuthToken) {
-    return res.status(200).json({ok: false, reason: "twitter oauth token not found"});
+  let TwitterOAuthToken, twitterUser;
+  try {
+    TwitterOAuthToken = await getTwitterOAuthToken(code);
+  } catch (err) {
+    return res.status(200).json({ ok: false, reason: err });
   }
 
-  const twitterUser = await getTwitterUser(TwitterOAuthToken.access_token);
-
-  if (!twitterUser) {
-    return res.status(200).json({ok: false, reason: "twitter user not found"});
+  try {
+    twitterUser = await getTwitterUser(TwitterOAuthToken.access_token);
+  } catch(err) {
+    return res.status(200).json({ok: false, reason: err});
   }
+
+  // this if block is only to satisfy typescript,
+  // flow shouldn ever reach here 
+  if (!TwitterOAuthToken || !twitterUser) {
+    throw "TwitterOauthtoken or twitter user not found";
+  }
+
 
   const token = jwt.sign({ // Signing the token to send to client side
     id: twitterUser.id,
