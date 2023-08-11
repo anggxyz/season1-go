@@ -25,7 +25,7 @@ const getWhitelistInfoMessage = (status: boolean) => {
     default: return "Whitelist Status";
   }
 }
-const Wrapper = styled.div`
+export const Wrapper = styled.div`
   display: flex;
   gap: 18px;
   .window {

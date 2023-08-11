@@ -1,9 +1,11 @@
 import { Button, Window, WindowHeader } from "react95"
 
 export const ErrorWindow = ({
-  onClose
+  onClose,
+  text
 }: {
   onClose: () => void;
+  text?: string
 }) => {
   return (
     <Window style={{
@@ -18,6 +20,9 @@ export const ErrorWindow = ({
       <Button onClick={onClose}><span className='close-icon' /></Button>
     </WindowHeader>
       <p>There was an error</p>
+      {
+        text && <p>{text}</p>
+      }
       <Button primary onClick={onClose}>Try again?</Button>
     </Window>
   )

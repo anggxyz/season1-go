@@ -1,20 +1,41 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { ConnectKitButton } from "connectkit";
-import { type NextPage } from "next";
+import { type GetServerSideProps } from "next";
 import { useEffect, useState } from "react";
-import { Button, Hourglass, TextInput, Window, WindowContent, WindowHeader } from "react95";
+import { Button, Frame, Hourglass, TextInput, Window, WindowContent, WindowHeader } from "react95";
 import Main from "src/layouts/Main";
 import { useContractRead, useContractWrite } from "wagmi";
+import { ErrorWindow } from "~src/components/ErrorWindow";
+import { useDataStore } from "~src/hooks/useDataStore";
+import { useMerkleRoot } from "~src/hooks/useMerkleRoot";
+import { siweServer } from "~src/server/utils/siweServer";
+import { ADMINS } from "~src/utils/constants";
 import { deployed } from "~src/utils/contracts/vcs1";
+import { Wrapper } from "..";
 
-const Admin: NextPage = () => {
+export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+  const { address } = await siweServer.getSession(req, res);
+  if (!address || !(ADMINS.includes(address))) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: '/admin/auth',
+      }
+    };
+  }
+  return {
+    props: {}
+  };
+};
+
+const Admin = () => {
   return (
     <Main>
       <div>
         <ConnectKitButton />
         <br />
-        <ReadContract/>
-        <WriteContract/>
+        {/* <ReadContract/> */}
+        <AdminFunctions />
       </div>
     </Main>
   )
@@ -136,63 +157,54 @@ const ReadContract = () => {
   )
 }
 
-const WriteContract = () => {
-  const [isPausedComponent, setIsPausedComponent] = useState<boolean>(false);
-  const [updateWhitelistArgs, setUpdateWhitelistArgs] = useState<string>("0xe7BccBc3b85b52875fB449ac730C026e44221cB7,0xDd35Ac3f8986aE81d7F8B7c59565E73a3a525B4E");
+const AdminFunctions = () => {
+  const [updateWhitelistArgs, setUpdateWhitelistArgs] = useState<string>("");
+  // get whitelist from edge
+  const { data: whitelist, refetch: refetchWhitelist } = useDataStore({ key: "whitelist" });
 
-  const generateArgsForWhitelistUpdate = () => {
-    const addresses = updateWhitelistArgs.split(",");
-    console.log("returning: ", [addresses, true])
-    return [addresses, true]
-  }
-
-  // ispaused
-  const { data: isPaused, isLoading: isPausedLoading, error: isPausedError } = useContractRead({
-    address: deployed.address as `0x${string}`,
-    abi: deployed.abi,
-    functionName: 'paused',
-    chainId: deployed.chainId,
-    enabled: false
-  })
   useEffect(() => {
-    if (isPaused && !isPausedLoading && !isPausedError) {
-      return setIsPausedComponent(Boolean(isPaused))
+    if (whitelist) {
+      setUpdateWhitelistArgs(whitelist.data.toString());
     }
-    return setIsPausedComponent(false);
-  }, [isPaused, isPausedLoading, isPausedError])
+  }, [whitelist])
 
-  // set whitelist
-  const { write: updateWhitelist, error: updateWhitelistError } = useContractWrite({
+  // fetch merkle root
+  const { data: merkleRoot, /* isLoading: isMerkleRootLoading, */ error: isMerkleRootError, refetch: refetchRoot } = useContractRead({
     address: deployed.address as `0x${string}`,
     abi: deployed.abi,
-    functionName: 'bulkUpdateWhitelist',
-    args: generateArgsForWhitelistUpdate(),
+    functionName: 'merkleRoot',
     chainId: deployed.chainId,
+    enabled: true
   })
 
-  // pause contract
-  const { write: pause, error: pauseError } = useContractWrite({
-      address: deployed.address as `0x${string}`,
-      abi: deployed.abi,
-      functionName: 'pause',
-      chainId: deployed.chainId,
-    })
+  const {root, refetch: generateRoot} = useMerkleRoot();
 
-  // unpause contract
-  const { write: unpause, error: unpauseError } = useContractWrite({
+  // set merkle root
+  const { write: updateWhitelistOnContract, error: updateWhitelistOnContractError, isLoading: updateWhitelistLoading } = useContractWrite({
     address: deployed.address as `0x${string}`,
     abi: deployed.abi,
-    functionName: 'unpause',
+    functionName: 'updateMerkleRoot',
+    args: [root],
     chainId: deployed.chainId,
+    onSuccess: () => refetchRoot()
   })
 
-  console.log({pauseError, unpauseError})
+  const [isError, setIsError] = useState<boolean>(false);
 
-  console.log(updateWhitelistError);
+  useEffect(() => {
+    setIsError(Boolean(updateWhitelistOnContractError) || Boolean(isMerkleRootError));
+  }, [updateWhitelistOnContractError, isMerkleRootError])
+
+  console.log(updateWhitelistOnContractError);
+
+  console.log(root);
+
+
   return (
-    <Window style={{ padding: '0.2rem', width: '100%', height: 'min-content', marginBottom: '1rem' }}>
+    <Wrapper>
+    <Window style={{ padding: '0.2rem', height: 'min-content', marginBottom: '1rem' }}>
     <WindowHeader>
-      WRITE
+      Admin Functions
     </WindowHeader>
     <WindowContent style={{
       display: 'flex',
@@ -200,28 +212,48 @@ const WriteContract = () => {
       gap: '18px'
     }}>
       <div style={{display: 'flex', flexDirection: 'row',  gap: '8px'}}>
-        <Button style={{width: '150px'}} onClick={() => updateWhitelist()} primary>Whitelist</Button>
-        <TextInput
-          multiline
-          rows={6}
-          value={String(updateWhitelistArgs)}
-          onChange={(e) => { setUpdateWhitelistArgs(e.target.value) }}
-          style={{
-            width: '500px'
-          }}
-        />
-      </div>
-      <div style={{display: 'flex', flexDirection: 'row',  gap: '8px'}}>
-        <Button style={{width: '150px'}} onClick={() => {
-          if (isPausedComponent) {
-            return unpause();
-          } else {
-            return pause();
-          }
-        }} primary>{isPausedComponent ? "Unpause" : "Pause"}</Button>
+        <div style={{display: 'flex', flexDirection: 'column',  gap: '8px', width: '100%'}}>
+          <TextInput
+            multiline
+            rows={6}
+            value={String(updateWhitelistArgs)}
+            contentEditable={false}
+          />
+          <Frame variant='well' style={{ padding: '10px' }} >
+            Updating whitelist:
+            <br />
+            <ol>
+              <li>Update array `whitelist` in <a href="https://vercel.com/angelagilhotra/season1-go/stores" target="_blank">edge config</a></li>
+              <li>Click Refetch whitelist below, confirm the whitelist displayed above is the same as the one in Edge config</li>
+              <li>Click Generate root below</li>
+              <li>If generated root is different from Fetched root from contract, click `Update Root`</li>
+            </ol>
+          </Frame>
+          <Button style={{ width: '300px' }} onClick={() => refetchWhitelist()}>Refetch whitelist from Edge</Button>
+          <div style={{display: 'flex', flexDirection: 'row',  gap: '8px'}}>
+            <Button style={{width: '300px'}} onClick={() => generateRoot()}>Generate Root</Button>
+            <TextInput value={root.toString() ?? ""} contentEditable={false} style={{width: "100%", flex: "1"}}/>
+          </div>
+          <div style={{display: 'flex', flexDirection: 'row',  gap: '8px'}}>
+            <Button style={{width: '300px'}} onClick={() => refetchRoot()}>Refetch Root from Contract</Button>
+            <TextInput value={merkleRoot?.toString() ?? ""} contentEditable={false} style={{width: "100%", flex: "1"}}/>
+          </div>
+            <Button style={{width: '300px', marginTop: "10px"}} onClick={() => updateWhitelistOnContract()} size="lg" primary disabled={root === merkleRoot}>
+              Update Root on Contract
+              {
+                updateWhitelistLoading &&
+                <Hourglass />
+              }
+            </Button>
+        </div>
       </div>
     </WindowContent>
   </Window>
+    {
+      isError &&
+      <ErrorWindow onClose={() => setIsError(false)} text="" />
+    }
+  </Wrapper>
   )
 }
 
