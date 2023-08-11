@@ -17,7 +17,6 @@ export const useDataStore = ({ key }: { key: string }): {
   const [_, refetch] = useReducer((x) => x + 1, 0);
 
   useEffect(() => {
-    console.log("calling getKey");
     axios
       .post(`/api/edge/getKey`, { key }, {
         headers: {

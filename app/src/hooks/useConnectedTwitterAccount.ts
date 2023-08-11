@@ -34,6 +34,8 @@ export function useConnectedTwitterAccount() {
 
   const disconnect = () => {
     try {
+      // something about this feels so wrong
+      // i'm too sleep deprived to fix this
       router.push('/api/twitter/signout');
     } catch (err) {
       console.log(err);
