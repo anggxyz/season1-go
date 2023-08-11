@@ -1,10 +1,10 @@
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import { alchemyProvider } from "wagmi/providers/alchemy";
-import { configureChains } from "wagmi";
+import { type Chain, configureChains } from "wagmi";
 import { foundry, goerli } from "wagmi/chains";
 import { deployed } from "./contracts/vcs1";
 
-const supportedChains = [foundry, goerli];
+const supportedChains = [foundry, goerli] as Chain[];
 export const CHAIN = supportedChains.find((chain) => chain.id === deployed.chainId);
 
 if (!CHAIN) {

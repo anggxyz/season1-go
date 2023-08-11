@@ -4,13 +4,13 @@ import { useIsOwnerOfToken } from './useIsOwnerOfToken';
 import { useConnectedTwitterAccount } from './useConnectedTwitterAccount';
 import { useMintPrice } from './useMintPrice';
 import { useComputeHash } from './useComputeHash';
-
 export const useMint = () => {
   const { address } = useAccount();
   const { tokenOfOwnerByIndexRefetch, balanceOfRefetch } = useIsOwnerOfToken();
   const { data: twitterInfo } = useConnectedTwitterAccount();
   const { parsed } = useMintPrice();
-  const {hash} = useComputeHash({ key: twitterInfo?.payload?.username })
+  const { hash, proof } = useComputeHash({ key: twitterInfo?.payload?.username })
+
   const {
     // data: publicMintData,
     isLoading: publicMintIsLoading,
@@ -42,7 +42,7 @@ export const useMint = () => {
     address: deployed.address as `0x${string}`,
     abi: deployed.abi,
     functionName: 'mintTo',
-    args: [address, hash],
+    args: [address, hash, proof],
     chainId: deployed.chainId,
     onSuccess: () => {
       tokenOfOwnerByIndexRefetch();

@@ -4,6 +4,7 @@ pragma solidity 0.8.10;
 import "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import "openzeppelin-contracts/contracts/utils/Strings.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
 
 error MintPriceNotPaid();
 error MaxSupply();
@@ -254,8 +255,8 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      * with `root`
      * @param hash hash to verify
      */
-    function _verifyHash(bytes32 hash) internal pure returns (bool) {
-      return true;
+    function _verifyHash(bytes32 hash, bytes32[] memory proof) internal view returns (bool) {
+      return MerkleProof.verify(proof, _root, hash);
     }
 
     function _postMint(address recipient) internal {
@@ -321,10 +322,10 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      * @param recipient receiver of the nft
      * @param hash unique hash associated with minter's twitter handle
      */
-    function mintTo(address recipient, bytes32 hash) public returns (uint256) {
+    function mintTo(address recipient, bytes32 hash, bytes32[] memory proof) public returns (uint256) {
       _preMintCheck(recipient, hash);
 
-      if (!_verifyHash(hash)) {
+      if (!_verifyHash(hash, proof)) {
         revert HashVerificationFailed();
       }
 

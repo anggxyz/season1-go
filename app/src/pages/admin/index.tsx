@@ -9,13 +9,14 @@ import { ErrorWindow } from "~src/components/ErrorWindow";
 import { useDataStore } from "~src/hooks/useDataStore";
 import { useMerkleRoot } from "~src/hooks/useMerkleRoot";
 import { siweServer } from "~src/server/utils/siweServer";
-import { ADMINS } from "~src/utils/constants";
 import { deployed } from "~src/utils/contracts/vcs1";
 import { Wrapper } from "..";
+import { isAddressAdmin } from "~src/server/utils/isAddressAdmin";
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   const { address } = await siweServer.getSession(req, res);
-  if (!address || !(ADMINS.includes(address))) {
+  const isAdmin = await isAddressAdmin(address);
+  if (!address || !isAdmin) {
     return {
       redirect: {
         permanent: false,

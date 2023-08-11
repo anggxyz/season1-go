@@ -453,30 +453,16 @@ export const abi = [
         "internalType": "address",
         "name": "recipient",
         "type": "address"
-      }
-    ],
-    "name": "mintTo",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "recipient",
-        "type": "address"
       },
       {
         "internalType": "bytes32",
         "name": "hash",
         "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "proof",
+        "type": "bytes32[]"
       }
     ],
     "name": "mintTo",
@@ -488,6 +474,25 @@ export const abi = [
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
+    "name": "mintTo",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -869,7 +874,7 @@ export const abi = [
 
 export const deployed = {
   chainId: 5,
-  address: "0x99d86Eb0b415D9A942Fc61a238326764f3F3e74F",
+  address: "0xd7dc6c4292d0cc8580ad7ab2434a996afc5f1b1b",
   abi
 }
 
