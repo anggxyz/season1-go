@@ -3,7 +3,7 @@ import React from 'react';
 import { AppBar, Button, Toolbar } from 'react95';
 import { useRouter } from 'next/router'
 import { CHAIN } from '~src/utils/onChainConfig';
-// import { useIsTokenGated } from '~src/hooks/useIsTokenGated';
+import { deployed } from '~src/utils/contracts/vcs1';
 
 type NavItem = "home" | "about" | "kya";
 
@@ -14,11 +14,25 @@ const getActiveNavItem = (path: string): NavItem | undefined => {
   return;
 }
 
+const getBlockExplorerUrl = () => {
+  if (!CHAIN) {
+    throw "CHAIN not defined";
+  }
+  const explorerUrl = CHAIN.blockExplorers ? CHAIN.blockExplorers.default.url : "https://etherscan.io";
+  return explorerUrl;
+}
+
 const ActiveChain = () => {
   if (!CHAIN?.name) {
     return <></>
   }
-  return <Button variant='menu' active={false} style={{margin: "5px"}}>Active chain: {CHAIN.name.toString()}</Button>
+  return (
+    <a href={getBlockExplorerUrl() + "/address/" + deployed.address} target="_blank" style={{
+      marginRight: "15px"
+    }}>
+      Active chain: {CHAIN.name.toString()}
+    </a>
+  )
 }
 
 export default function Nav() {
