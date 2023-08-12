@@ -7,7 +7,6 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    DATABASE_URL: z.string().url(),
     NODE_ENV: z.enum(["development", "test", "production"]),
     SESSION_SECRET:
       process.env.NODE_ENV === "production"
@@ -17,7 +16,6 @@ export const env = createEnv({
     TWITTER_COOKIE_SECRET: z.string().min(1),
     EDGE_CONFIG: z.string().min(1),
     SECRETYSECRET: z.string().min(1),
-    NODE_OPTIONS: z.string().min(1),
     AUTH_TOKEN: z.string().min(1)
   },
 
@@ -37,7 +35,6 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     SESSION_SECRET: process.env.SESSION_SECRET,
     NEXT_PUBLIC_ALCHEMY_ID: process.env.NEXT_PUBLIC_ALCHEMY_ID,
@@ -47,7 +44,6 @@ export const env = createEnv({
     EDGE_CONFIG: process.env.EDGE_CONFIG,
     NEXT_PUBLIC_TWITTER_CLIENT_ID: process.env.NEXT_PUBLIC_TWITTER_CLIENT_ID,
     SECRETYSECRET: process.env.SECRETYSECRET,
-    NODE_OPTIONS: process.env.NODE_OPTIONS,
     AUTH_TOKEN:process.env.AUTH_TOKEN
   },
   /**

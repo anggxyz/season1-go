@@ -2,35 +2,40 @@ import { MerkleTree } from "~src/server/utils/merkle";
 import Web3 from "web3";
 import {
   createCipheriv,
+  createHash,
   // createDecipheriv,
-  // randomBytes,
-  scryptSync
+  // scryptSync
 } from "crypto";
 const { utils } = Web3;
-const algorithm = 'des';
+const algorithm = 'aes-256-cbc';
 const ENCRYPTION_KEY = process.env.SECRETYSECRET;
 if (!ENCRYPTION_KEY) {
   throw "key not found";
 }
 
-// const decrypt = (text: string) => {
-//   const textParts = text.split(':');
-//   const iv = Buffer.from(textParts.shift() ?? "", 'hex');
-//   const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-//   const keyBuffer = scryptSync(ENCRYPTION_KEY, 'salt', 8)
-//   const decipher = createDecipheriv(algorithm, keyBuffer, iv);
-//   let decrypted = decipher.update(encryptedText);
-//   decrypted = Buffer.concat([decrypted, decipher.final()]);
-//   return decrypted.toString();
+const KEY = createHash('sha256').update(ENCRYPTION_KEY).digest('base64').substr(0, 32);
+const IV = Buffer.alloc(16,0)
+
+// const decrypt = (encryptedText: string) => {
+//   try {
+//     const textParts = encryptedText.split(':');
+//     const iv = Buffer.from(textParts.shift() ?? "", 'hex');
+//     const encryptedData = Buffer.from(textParts.join(':'), 'hex');
+//     const decipher = createDecipheriv(algorithm, KEY, iv);
+//     const decrypted = decipher.update(encryptedData);
+//     const decryptedText = Buffer.concat([decrypted, decipher.final()]);
+//     return decryptedText.toString();
+//   } catch (error) {
+//     console.log(error)
+//   }
 // }
+
 const encrypt = (text: string) => {
-  const ivBuffer = Buffer.alloc(8, 0);
-  const keyBuffer = scryptSync(ENCRYPTION_KEY, 'salt', 8);
-  const cipher = createCipheriv(algorithm, keyBuffer, ivBuffer);
+  const cipher = createCipheriv(algorithm, KEY, IV);
   let encrypted = cipher.update(text);
   encrypted = Buffer.concat([encrypted, cipher.final()]);
-  const encryptedTest = ivBuffer.toString('hex') + ':' + encrypted.toString('hex')
-  return encryptedTest;
+  const encryptedText = IV.toString('hex') + ':' + encrypted.toString('hex')
+  return encryptedText;
 }
 
 export const computeHash = (element: string) => utils.soliditySha3(encrypt(element));
