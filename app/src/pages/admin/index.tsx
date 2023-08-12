@@ -78,6 +78,12 @@ const AdminFunctions = () => {
 
   useEffect(() => {
     setIsError(Boolean(updateWhitelistOnContractError) || Boolean(isMerkleRootError));
+    if (Boolean(updateWhitelistOnContractError) || Boolean(isMerkleRootError)) {
+      console.log({
+        updateWhitelistOnContractError,
+        isMerkleRootError
+      })
+    }
   }, [updateWhitelistOnContractError, isMerkleRootError])
 
   return (
