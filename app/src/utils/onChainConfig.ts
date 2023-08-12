@@ -19,7 +19,7 @@ export const { publicClient, webSocketPublicClient } = configureChains(
   [
     jsonRpcProvider({
       rpc: () => ({
-        http: `http://localhost:8545`,
+        http: CHAIN.rpcUrls.default.http[0] ?? "http://localhost:8545",
       })
     }),
     alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID! })

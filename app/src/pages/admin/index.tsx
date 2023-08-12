@@ -54,7 +54,7 @@ const AdminFunctions = () => {
   }, [whitelist])
 
   // fetch merkle root
-  const { data: merkleRoot, /* isLoading: isMerkleRootLoading, */ error: isMerkleRootError, refetch: refetchRoot } = useContractRead({
+  const { data: merkleRoot, /* isLoading: isMerkleRootLoading, */ error: merkleRootError, refetch: refetchRoot } = useContractRead({
     address: deployed.address as `0x${string}`,
     abi: deployed.abi,
     functionName: 'merkleRoot',
@@ -77,14 +77,14 @@ const AdminFunctions = () => {
   const [isError, setIsError] = useState<boolean>(false);
 
   useEffect(() => {
-    setIsError(Boolean(updateWhitelistOnContractError) || Boolean(isMerkleRootError));
-    if (Boolean(updateWhitelistOnContractError) || Boolean(isMerkleRootError)) {
+    setIsError(Boolean(updateWhitelistOnContractError) || Boolean(merkleRootError));
+    if (Boolean(updateWhitelistOnContractError) || Boolean(merkleRootError)) {
       console.log({
         updateWhitelistOnContractError,
-        isMerkleRootError
+        merkleRootError
       })
     }
-  }, [updateWhitelistOnContractError, isMerkleRootError])
+  }, [updateWhitelistOnContractError, merkleRootError])
 
   return (
     <Wrapper>
