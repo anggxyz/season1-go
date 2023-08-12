@@ -80,11 +80,6 @@ const AdminFunctions = () => {
     setIsError(Boolean(updateWhitelistOnContractError) || Boolean(isMerkleRootError));
   }, [updateWhitelistOnContractError, isMerkleRootError])
 
-  console.log(updateWhitelistOnContractError);
-
-  console.log(root);
-
-
   return (
     <Wrapper>
     <Window style={{ padding: '0.2rem', height: 'min-content', marginBottom: '1rem' }}>

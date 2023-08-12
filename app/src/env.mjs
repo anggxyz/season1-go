@@ -15,7 +15,10 @@ export const env = createEnv({
         : z.string().min(1).optional(),
     TWITTER_CLIENT_ID: z.string().min(1),
     TWITTER_COOKIE_SECRET: z.string().min(1),
-    EDGE_CONFIG: z.string().min(1)
+    EDGE_CONFIG: z.string().min(1),
+    SECRETYSECRET: z.string().min(1),
+    NODE_OPTIONS: z.string().min(1),
+    AUTH_TOKEN: z.string().min(1)
   },
 
   /**
@@ -42,7 +45,10 @@ export const env = createEnv({
     TWITTER_CLIENT_ID: process.env.TWITTER_CLIENT_ID,
     TWITTER_COOKIE_SECRET: process.env.TWITTER_COOKIE_SECRET,
     EDGE_CONFIG: process.env.EDGE_CONFIG,
-    NEXT_PUBLIC_TWITTER_CLIENT_ID: process.env.NEXT_PUBLIC_TWITTER_CLIENT_ID
+    NEXT_PUBLIC_TWITTER_CLIENT_ID: process.env.NEXT_PUBLIC_TWITTER_CLIENT_ID,
+    SECRETYSECRET: process.env.SECRETYSECRET,
+    NODE_OPTIONS: process.env.NODE_OPTIONS,
+    AUTH_TOKEN:process.env.AUTH_TOKEN
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

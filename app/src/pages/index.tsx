@@ -124,7 +124,7 @@ export default function Home() {
   }, [publicMintIsError, whitelistMintIsError])
 
   useEffect(() => {
-    if (Object.values(connectStatus).every((st) => st === "DISCONNECTED")) {
+    if (Object.values(connectStatus).some((st) => st === "DISCONNECTED")) {
       return setMintButtonLabel("Connect");
     }
 
@@ -153,7 +153,10 @@ export default function Home() {
   }
 
   const onClickMint = () => {
-    if (connectStatus.wallet === "DISCONNECTED") {
+    if (
+      connectStatus.wallet === "DISCONNECTED"
+      || connectStatus.twitter === "DISCONNECTED"
+    ) {
       openConnectWalletWindow();
       return;
     }
