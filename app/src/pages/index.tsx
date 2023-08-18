@@ -283,7 +283,7 @@ export default function Home() {
                       <Checkbox
                         checked={!!ownershipType.TwitterMinted}
                         value='twitterMinted'
-                        label='Twitter minted (whitelist mint)'
+                        label='Twitter minted'
                         name='twitter minted'
                       />
                     </div>

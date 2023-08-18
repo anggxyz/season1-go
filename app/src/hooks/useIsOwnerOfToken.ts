@@ -4,6 +4,7 @@ import { deployed } from '~src/utils/contracts/vcs1';
 import { useWhitelistStatus } from './useWhitelistStatus';
 import { useComputeHash } from './useComputeHash';
 import { useConnectedTwitterAccount } from './useConnectedTwitterAccount';
+import { zeroAddress } from 'viem';
 
 /**
  *
@@ -63,7 +64,7 @@ export const useIsOwnerOfToken = (): {
   })
   const twitter = useConnectedTwitterAccount();
   const whitelistStatus = useWhitelistStatus();
-  const {hash} = useComputeHash({key: twitter.data?.payload?.username});
+  const {whitelistedMintArgs, publicMintArgs} = useComputeHash({key: twitter.data?.payload?.username});
 
   // query contract to check owner
   const {
@@ -109,7 +110,7 @@ export const useIsOwnerOfToken = (): {
     chainId: deployed.chainId
   })
 
-  // hash to minter
+  // hash to minter - whitelisted
   const {
     data: hashToMinter,
     isLoading: hashToMinterLoading,
@@ -119,12 +120,30 @@ export const useIsOwnerOfToken = (): {
     address: deployed.address as `0x${string}`,
     abi: deployed.abi,
     functionName: 'hashToMinter',
-    args: [hash],
+    args: [whitelistedMintArgs?.hash],
     chainId: deployed.chainId,
     enabled: Boolean(whitelistStatus)
   })
 
+    // hash to minter - public
+    const {
+      data: hashToMinterPublic,
+      isLoading: hashToMinterPublicLoading,
+      error: hashToMinterPublicError,
+      isFetched: hashToMinterPublicFetched
+    } = useContractRead({
+      address: deployed.address as `0x${string}`,
+      abi: deployed.abi,
+      functionName: 'hashToMinter',
+      args: [publicMintArgs?.hash],
+      chainId: deployed.chainId,
+      enabled: Boolean(whitelistStatus)
+    })
+
   // minter to token id
+  const hashToMinterIsValid = hashToMinterFetched && hashToMinter && hashToMinter !== zeroAddress;
+  const hashToMinterPublicIsValid = hashToMinterPublicFetched && hashToMinterPublic && hashToMinterPublic !== zeroAddress;
+
   const {
     data: minterToTokenId,
     isLoading: minterToTokenIdLoading,
@@ -134,9 +153,9 @@ export const useIsOwnerOfToken = (): {
     address: deployed.address as `0x${string}`,
     abi: deployed.abi,
     functionName: 'minterToTokenId',
-    args: [hashToMinter],
+    args: [hashToMinterIsValid && hashToMinter || hashToMinterPublicIsValid && hashToMinterPublic],
     chainId: deployed.chainId,
-    enabled: Boolean(hashToMinterFetched)
+    enabled: Boolean(hashToMinterIsValid || hashToMinterPublicIsValid)
   })
 
   // SETTING TOKEN ID
@@ -221,15 +240,17 @@ export const useIsOwnerOfToken = (): {
     isMinterLoading,
   ])
 
-  // SETTING IF TWITTER HASH WAS USED TO MINT BEFORE
+  // SETTING IF HASH WAS USED TO MINT BEFORE
   useEffect(() => {
     if (
       address
       && isConnected
       && !hashToMinterLoading
+      && !hashToMinterPublicLoading
       && !minterToTokenIdLoading
       && !hashToMinterError
       && !minterToTokenIdError
+      && !hashToMinterPublicError
     ) {
       if (minterToTokenId) {
         setTokenId(Number(minterToTokenId));
@@ -254,8 +275,10 @@ export const useIsOwnerOfToken = (): {
     isDisconnected,
     hashToMinterLoading,
     minterToTokenIdLoading,
+    hashToMinterPublicLoading,
     hashToMinterError,
     minterToTokenIdError,
+    hashToMinterPublicError,
     minterToTokenId,
     tokenOfOwnerByIndex
   ])
