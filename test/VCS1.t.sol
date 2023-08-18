@@ -17,11 +17,11 @@ contract VCS1Test is Test {
     }
 
     function test_addAdmin() public {
-      // nft.addNewAdmin(address(1));
-      // nft.renounceAdmin(address(1));
-      // vm.startPrank(address(1));
-      // nft.unpausePublicMints();
-      // vm.stopPrank();
+        // nft.addNewAdmin(address(1));
+        // nft.renounceAdmin(address(1));
+        // vm.startPrank(address(1));
+        // nft.unpausePublicMints();
+        // vm.stopPrank();
     }
 
     /**
@@ -45,7 +45,7 @@ contract VCS1Test is Test {
      * execute `mintTo(address)` -> should revert with PublicMintsPaused()
      */
     function test_pausePublicMints() public {
-      // nft.pausePublicMints();
+        // nft.pausePublicMints();
     }
 
     /**
@@ -57,7 +57,7 @@ contract VCS1Test is Test {
      * check pausedPublicMints -> shoudl be false
      */
     function test_unpausePublicMints() public {
-      nft.unpausePublicMints();
+        nft.unpausePublicMints();
     }
 
     /**
@@ -91,8 +91,8 @@ contract VCS1Test is Test {
      * should revert with MintPriceNotPaid
      */
     function test_MintPriceNotPaid() public {
-      // vm.expectRevert(MintPriceNotPaid.selector);
-      // nft.mintTo(address(1));
+        // vm.expectRevert(MintPriceNotPaid.selector);
+        // nft.mintTo(address(1));
     }
 
     /**
@@ -116,7 +116,6 @@ contract VCS1Test is Test {
      */
     function test_whitelistMint() public {}
 
-
     /**
      * should revert for invalid hash
      * check whitelistTransfersPaused -> should be false (by default)
@@ -127,7 +126,6 @@ contract VCS1Test is Test {
      * should revert with HashVerificationFailed()
      */
     function test_whitelistMintInvalidHash() public {}
-
 
     /**
      * revert if TOTALSUPPLY mints have happened
@@ -152,14 +150,12 @@ contract VCS1Test is Test {
         // nft.mintTo{value: 0.01 ether}(address(0));
     }
 
-
     /**
      * callable by owner
      * execute updateBaseURI
      * call tokenURI ot check
      */
     function test_updateBaseURI() public {}
-
 
     /**
      * correctly register owner of a token id
@@ -186,7 +182,6 @@ contract VCS1Test is Test {
     //     assertEq(address(ownerOfTokenIdOne), address(1));
     // }
 
-
     // /**
     //  * an address should be able to own a single NFT only
     //  * via mint
@@ -208,7 +203,6 @@ contract VCS1Test is Test {
     //     nft.safeTransferFrom(address(2), address(1), 2);
     //     vm.stopPrank();
     // }
-
 
     function test_WithdrawalWorksAsOwner() public {
         // Mint an NFT, sending eth to the contract

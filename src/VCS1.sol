@@ -20,9 +20,9 @@ error PublicMintsActive();
 error WhitelistTransfersPaused();
 error WhitelistTransfersActive();
 
-
 contract VCS1 is ERC721, ERC721Enumerable, Admins {
     using Strings for uint256;
+
     string public baseURI;
     uint256 public currentTokenId;
     uint256 public constant TOTAL_SUPPLY = 1500;
@@ -30,16 +30,16 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
 
     // updated when an address mints an NFT
     // includes all whitelisted and non-whitelisted
-    mapping (address => uint256) internal _minter;
+    mapping(address => uint256) internal _minter;
 
     // updated when a hash is used to mint by an address (record of consumed hashes)
     // hashes are only used by whitelisted accounts
-    mapping (bytes32 => address) internal _hashToMinter;
+    mapping(bytes32 => address) internal _hashToMinter;
 
     // all whitelisted minters
     // updated when a hash is used to mint by an address (record of all whitelisted successful minters)
     // hashes are only used by whitelisted accounts
-    mapping (address => bytes32) internal _minterToHash;
+    mapping(address => bytes32) internal _minterToHash;
 
     bool private _whitelistTransfersPaused;
     bool private _publicMintsPaused;
@@ -48,7 +48,7 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
     bytes32 private _root;
 
     event RootUpdated(bytes32 indexed oldRoot, bytes32 indexed newRoot);
-    event WhitelistMint(address indexed minter, bytes32 indexed hash, uint256 tokenId );
+    event WhitelistMint(address indexed minter, bytes32 indexed hash, uint256 tokenId);
     event PublicMint(address indexed minter, uint256 tokenId);
 
     constructor() ERC721("VCS1", "VCS1") {
@@ -56,95 +56,92 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
         _publicMintsPaused = true;
         _addAdmin(msg.sender);
     }
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override(ERC721, ERC721Enumerable) returns (bool) {
-        return super.supportsInterface(interfaceId);
-    }
-    function minterToHash(address minter) public view returns (bytes32) {
-      return _minterToHash[minter];
-    }
 
-  function hashToMinter(bytes32 hash) public view returns (address) {
-      return _hashToMinter[hash];
-    }
-
-    function isMinter(address minter) public view returns (bool) {
-      return _minter[minter] != 0;
-    }
-
-    function minterToTokenId(address minter) public view returns (uint256) {
-      return _minter[minter];
-    }
-
-    function merkleRoot() public view virtual returns (bytes32) {
-      return _root;
-    }
-
-    function publicMintsPaused() public view virtual returns (bool) {
-      return _publicMintsPaused;
-    }
-
-    function whitelistTransfersPaused() public view virtual returns (bool) {
-      return _whitelistTransfersPaused;
-    }
-
-  /**
-   * @dev See {IERC721Metadata-tokenURI}
-   *
-   * Requirements:
-   * - tokenId should be minted (owned by an address)
-   *
-   * @param tokenId id to return full URI for
-   */
-    function tokenURI(uint256 tokenId)
+    function supportsInterface(bytes4 interfaceId)
         public
         view
         virtual
-        override
-        returns (string memory)
+        override(ERC721, ERC721Enumerable)
+        returns (bool)
     {
+        return super.supportsInterface(interfaceId);
+    }
+
+    function minterToHash(address minter) public view returns (bytes32) {
+        return _minterToHash[minter];
+    }
+
+    function hashToMinter(bytes32 hash) public view returns (address) {
+        return _hashToMinter[hash];
+    }
+
+    function isMinter(address minter) public view returns (bool) {
+        return _minter[minter] != 0;
+    }
+
+    function minterToTokenId(address minter) public view returns (uint256) {
+        return _minter[minter];
+    }
+
+    function merkleRoot() public view virtual returns (bytes32) {
+        return _root;
+    }
+
+    function publicMintsPaused() public view virtual returns (bool) {
+        return _publicMintsPaused;
+    }
+
+    function whitelistTransfersPaused() public view virtual returns (bool) {
+        return _whitelistTransfersPaused;
+    }
+
+    /**
+     * @dev See {IERC721Metadata-tokenURI}
+     *
+     * Requirements:
+     * - tokenId should be minted (owned by an address)
+     *
+     * @param tokenId id to return full URI for
+     */
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         if (ownerOf(tokenId) == address(0)) {
             revert NonExistentTokenURI();
         }
-        return
-            bytes(baseURI).length > 0
-                ? string(abi.encodePacked(baseURI, tokenId.toString()))
-                : "";
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 
     function updateMerkleRoot(bytes32 newRoot) external onlyAdmin {
-      bytes32 oldRoot = _root;
-      _root = newRoot;
-      emit RootUpdated(oldRoot, newRoot);
+        bytes32 oldRoot = _root;
+        _root = newRoot;
+        emit RootUpdated(oldRoot, newRoot);
     }
 
     function pausePublicMints() external onlyAdmin {
-      if (publicMintsPaused()) {
-        revert PublicMintsPaused();
-      }
-      _publicMintsPaused = true;
+        if (publicMintsPaused()) {
+            revert PublicMintsPaused();
+        }
+        _publicMintsPaused = true;
     }
 
     function pauseWhitelistTransfers() external onlyAdmin {
-      if (whitelistTransfersPaused()) {
-        revert WhitelistTransfersPaused();
-      }
-      _whitelistTransfersPaused = true;
+        if (whitelistTransfersPaused()) {
+            revert WhitelistTransfersPaused();
+        }
+        _whitelistTransfersPaused = true;
     }
 
     function unpausePublicMints() external onlyAdmin {
-      if (!publicMintsPaused()) {
-        revert PublicMintsActive();
-      }
-      _publicMintsPaused = false;
+        if (!publicMintsPaused()) {
+            revert PublicMintsActive();
+        }
+        _publicMintsPaused = false;
     }
 
     function unpauseWhitelistTransfers() external onlyAdmin {
-      if (!whitelistTransfersPaused()) {
-        revert WhitelistTransfersActive();
-      }
-      _whitelistTransfersPaused = false;
+        if (!whitelistTransfersPaused()) {
+            revert WhitelistTransfersActive();
+        }
+        _whitelistTransfersPaused = false;
     }
 
     /**
@@ -153,7 +150,7 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      * @param _baseURI new uri to update
      */
     function updateBaseURI(string memory _baseURI) external onlyAdmin {
-      baseURI = _baseURI;
+        baseURI = _baseURI;
     }
 
     /**
@@ -163,21 +160,20 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      */
     function withdrawPayments(address payable payee) external onlyAdmin {
         uint256 balance = address(this).balance;
-        (bool transferTx, ) = payee.call{ value: balance }("");
+        (bool transferTx,) = payee.call{value: balance}("");
         if (!transferTx) {
             revert WithdrawTransfer();
         }
     }
 
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 firstTokenId,
-        uint256 batchSize
-    ) internal virtual override (ERC721, ERC721Enumerable) {
+    function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize)
+        internal
+        virtual
+        override(ERC721, ERC721Enumerable)
+    {
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
         if (minterToHash(from) != 0 && whitelistTransfersPaused()) {
-          revert WhitelistTransfersPaused();
+            revert WhitelistTransfersPaused();
         }
     }
 
@@ -191,17 +187,17 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      *
      * @param recipient receiver of the minted token
      */
-    function _preMintCheck(address recipient, bytes32 hash) view internal {
-      // revert if recipient already has an NFT or has already minted one
-      if (balanceOf(recipient) > 0 || isMinter(recipient)) {
-        revert NewMintersOnly();
-      }
-      if (hashToMinter(hash) != address(0)){
-        revert UsedHash();
-      }
-      if (minterToHash(recipient) != 0) {
-        revert NewMintersOnly();
-      }
+    function _preMintCheck(address recipient, bytes32 hash) internal view {
+        // revert if recipient already has an NFT or has already minted one
+        if (balanceOf(recipient) > 0 || isMinter(recipient)) {
+            revert NewMintersOnly();
+        }
+        if (hashToMinter(hash) != address(0)) {
+            revert UsedHash();
+        }
+        if (minterToHash(recipient) != 0) {
+            revert NewMintersOnly();
+        }
     }
 
     // @todo
@@ -211,7 +207,7 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      * @param hash hash to verify
      */
     function _verifyHash(bytes32 hash, bytes32[] memory proof) internal view returns (bool) {
-      return MerkleProof.verify(proof, _root, hash);
+        return MerkleProof.verify(proof, _root, hash);
     }
 
     /**
@@ -222,13 +218,13 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      */
 
     function _verifyHash(bytes32 hash, bytes memory signature) internal view returns (bool) {
-      return isAdmin(ECDSA.recover(hash, signature));
+        return isAdmin(ECDSA.recover(hash, signature));
     }
 
-    function _postMint(address recipient,bytes32 hash) internal {
-      _minter[recipient] = currentTokenId;
-      _hashToMinter[hash] = recipient;
-      _minterToHash[recipient] = hash;
+    function _postMint(address recipient, bytes32 hash) internal {
+        _minter[recipient] = currentTokenId;
+        _hashToMinter[hash] = recipient;
+        _minterToHash[recipient] = hash;
     }
     /**
      * @dev increments the `currentTokenId` param and
@@ -239,12 +235,13 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      *
      * @param recipient receiver of the token
      */
+
     function _mint(address recipient) internal {
-      uint256 newTokenId = ++currentTokenId;
-      if (newTokenId > TOTAL_SUPPLY) {
-          revert MaxSupply();
-      }
-      _safeMint(recipient, newTokenId);
+        uint256 newTokenId = ++currentTokenId;
+        if (newTokenId > TOTAL_SUPPLY) {
+            revert MaxSupply();
+        }
+        _safeMint(recipient, newTokenId);
     }
 
     /**
@@ -260,27 +257,27 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      * @param recipient receiver of the token
      */
     function mintTo(address recipient, bytes32 hash, bytes memory signature) public payable returns (uint256) {
-      _preMintCheck(recipient, hash);
+        _preMintCheck(recipient, hash);
 
-      if (publicMintsPaused()) {
-        revert PublicMintsPaused();
-      }
+        if (publicMintsPaused()) {
+            revert PublicMintsPaused();
+        }
 
-      if (msg.value != MINT_PRICE) {
-        revert MintPriceNotPaid();
-      }
+        if (msg.value != MINT_PRICE) {
+            revert MintPriceNotPaid();
+        }
 
-      // check if hash is signed by an admin
-      if (!_verifyHash(hash, signature)) {
-        revert HashVerificationFailed();
-      }
+        // check if hash is signed by an admin
+        if (!_verifyHash(hash, signature)) {
+            revert HashVerificationFailed();
+        }
 
-      _mint(recipient);
-      _postMint(recipient, hash);
+        _mint(recipient);
+        _postMint(recipient, hash);
 
-      emit PublicMint(recipient, currentTokenId);
+        emit PublicMint(recipient, currentTokenId);
 
-      return currentTokenId;
+        return currentTokenId;
     }
 
     /**
@@ -295,17 +292,17 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      * @param hash unique hash associated with minter's twitter handle
      */
     function mintTo(address recipient, bytes32 hash, bytes32[] memory proof) public returns (uint256) {
-      _preMintCheck(recipient, hash);
+        _preMintCheck(recipient, hash);
 
-      if (!_verifyHash(hash, proof)) {
-        revert HashVerificationFailed();
-      }
+        if (!_verifyHash(hash, proof)) {
+            revert HashVerificationFailed();
+        }
 
-      _mint(recipient);
-      _postMint(recipient, hash);
+        _mint(recipient);
+        _postMint(recipient, hash);
 
-      emit WhitelistMint(recipient, hash, currentTokenId);
+        emit WhitelistMint(recipient, hash, currentTokenId);
 
-      return currentTokenId;
+        return currentTokenId;
     }
 }
