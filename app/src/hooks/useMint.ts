@@ -9,8 +9,9 @@ export const useMint = () => {
   const { tokenOfOwnerByIndexRefetch, balanceOfRefetch } = useIsOwnerOfToken();
   const { data: twitterInfo } = useConnectedTwitterAccount();
   const { parsed } = useMintPrice();
-  const { hash, proof } = useComputeHash({ key: twitterInfo?.payload?.username })
+  const { whitelistedMintArgs, publicMintArgs } = useComputeHash({ key: twitterInfo?.payload?.username });
 
+  // public mint
   const {
     // data: publicMintData,
     isLoading: publicMintIsLoading,
@@ -22,7 +23,11 @@ export const useMint = () => {
     address: deployed.address as `0x${string}`,
     abi: deployed.abi,
     functionName: 'mintTo',
-    args: [address],
+    args: [
+      address,
+      publicMintArgs?.hash,
+      publicMintArgs?.signature
+    ],
     chainId: deployed.chainId,
     value: parsed,
     onSuccess: () => {
@@ -31,6 +36,7 @@ export const useMint = () => {
     },
   })
 
+  // whitelisted mint
   const {
     // data: whitelistMintData,
     isLoading: whitelistMintIsLoading,
@@ -42,7 +48,11 @@ export const useMint = () => {
     address: deployed.address as `0x${string}`,
     abi: deployed.abi,
     functionName: 'mintTo',
-    args: [address, hash, proof],
+    args: [
+      address,
+      whitelistedMintArgs?.hash,
+      whitelistedMintArgs?.proof
+    ],
     chainId: deployed.chainId,
     onSuccess: () => {
       tokenOfOwnerByIndexRefetch();

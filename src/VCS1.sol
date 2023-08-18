@@ -5,6 +5,8 @@ import "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import "openzeppelin-contracts/contracts/utils/Strings.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
+import "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
+import "./Admins.sol";
 
 error MintPriceNotPaid();
 error MaxSupply();
@@ -17,54 +19,7 @@ error PublicMintsPaused();
 error PublicMintsActive();
 error WhitelistTransfersPaused();
 error WhitelistTransfersActive();
-error CallerNotAdmin();
 
-contract Admins {
-  event NewAdminAdded(address indexed admin);
-  event RenounceAdmin(address indexed admin);
-
-  mapping (address => bool) private admins;
-  constructor () {
-    _addAdmin(msg.sender);
-  }
-
-  modifier onlyAdmin() {
-    _checkAdmin();
-    _;
-  }
-
-  function _checkAdmin() internal view virtual {
-    if (admins[msg.sender] != true) {
-      revert CallerNotAdmin();
-    }
-  }
-
-  function _addAdmin(address newAdmin) internal virtual {
-    admins[newAdmin] = true;
-    emit NewAdminAdded(newAdmin);
-  }
-
-  function _renounceAdmin(address oldAdmin) internal virtual {
-    admins[oldAdmin] = false;
-    emit RenounceAdmin(oldAdmin);
-  }
-
-  function addNewAdmin(address newAdmin) public onlyAdmin {
-    _addAdmin(newAdmin);
-  }
-
-  /**
-   * @dev any admin can remove any other admin
-   * @param oldAdmin admin to remove
-   */
-  function renounceAdmin(address oldAdmin) public onlyAdmin {
-    _renounceAdmin(oldAdmin);
-  }
-
-  function isAdmin(address addr) public view returns (bool) {
-    return admins[addr];
-  }
-}
 
 contract VCS1 is ERC721, ERC721Enumerable, Admins {
     using Strings for uint256;
@@ -259,9 +214,17 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
       return MerkleProof.verify(proof, _root, hash);
     }
 
-    function _postMint(address recipient) internal {
-      _minter[recipient] = currentTokenId;
+    /**
+     * override of _verifyHash(bytes32, bytes32[])
+     * This one verifies if a given signature on a hashed message is signed on by an admin or not
+     * @param hash hash of the message that is signed on by one of the admins
+     * @param signature signature
+     */
+
+    function _verifyHash(bytes32 hash, bytes memory signature) internal view returns (bool) {
+      return isAdmin(ECDSA.recover(hash, signature));
     }
+
     function _postMint(address recipient,bytes32 hash) internal {
       _minter[recipient] = currentTokenId;
       _hashToMinter[hash] = recipient;
@@ -292,19 +255,28 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      * - recipient should not have previously minted a token
      * - `_publicMintsPaused` should be false
      * - value sent in the transaction should equal MINT_PRICE
+     * - signature
      *
      * @param recipient receiver of the token
      */
-    function mintTo(address recipient) public payable returns (uint256) {
-      _preMintCheck(recipient, 0);
+    function mintTo(address recipient, bytes32 hash, bytes memory signature) public payable returns (uint256) {
+      _preMintCheck(recipient, hash);
+
       if (publicMintsPaused()) {
         revert PublicMintsPaused();
       }
+
       if (msg.value != MINT_PRICE) {
         revert MintPriceNotPaid();
       }
+
+      // check if hash is signed by an admin
+      if (!_verifyHash(hash, signature)) {
+        revert HashVerificationFailed();
+      }
+
       _mint(recipient);
-      _postMint(recipient);
+      _postMint(recipient, hash);
 
       emit PublicMint(recipient, currentTokenId);
 

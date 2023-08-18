@@ -4,7 +4,7 @@ import { pick } from "lodash";
 import { get } from '@vercel/edge-config';
 
 
-export default async function getHash (req: NextApiRequest, res: NextApiResponse) {
+export default async function getHashForWhitelistMint (req: NextApiRequest, res: NextApiResponse) {
   const { key } = pick(req.body, ["key"]) as  { key: string };
   const whitelist: string[] | undefined = await get("whitelist");
 
@@ -12,14 +12,20 @@ export default async function getHash (req: NextApiRequest, res: NextApiResponse
     throw `error: no key provided. key: ${key}`;
   }
 
+  if (!whitelist) {
+    throw `error: no whitelist returned. whitelist: ${whitelist}`
+  }
+
+  if (!whitelist.find((item => item === key))) {
+    console.log(`${key} not in whitelist`);
+    return res.status(404);
+  }
+
+  // compute hash of twitter handle
   const hash: string | undefined = computeHash(key);
 
   if (!hash) {
     throw `error: no hash returned. hash: ${hash}`;
-  }
-
-  if (!whitelist) {
-    throw `error: no whitelist returned. whitelist: ${whitelist}`
   }
 
   let proof: string[] = [];
@@ -29,5 +35,5 @@ export default async function getHash (req: NextApiRequest, res: NextApiResponse
   } catch (err) {}
 
 
-  res.status(200).json({ hash, proof });
+  return res.status(200).json({ hash, proof });
 }

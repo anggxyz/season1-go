@@ -3,30 +3,62 @@
 import { useEffect, useReducer, useState } from 'react';
 import axios from "axios";
 
+interface WhitelistedMintArgs {
+  hash: string,
+  proof: string
+}
+
+interface PublicMintArgs {
+  hash: string,
+  signature: string
+}
+
 // key = twitter username
 export const useComputeHash = ({ key }: { key?: string }): {
-  hash?: string,
-  proof?: string,
+  whitelistedMintArgs?: WhitelistedMintArgs,
+  publicMintArgs?: PublicMintArgs,
   error: string | null,
   loading: boolean,
   refetch: () => void
-}=> {
+} => {
+  /**
+   * check if key (twitter username) is whitelisted
+   * if whitelisted, return whitelistedMintArgs
+   * if not whitelisted, return publicMintArgs
+   */
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [hash, setRoot] = useState<string | undefined>(undefined);
-  const [proof, setProof] = useState<string | undefined>(undefined);
+
+  const [whitelistedMintArgs, setWhitelistedMintArgs] = useState<WhitelistedMintArgs>();
+  const [publicMintArgs, setPublicMintArgs] = useState<PublicMintArgs>();
+
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
   const [_, refetch] = useReducer((x) => x + 1, 0);
 
   useEffect(() => {
     if (!key) return;
-    axios.post<{hash: string, proof: string}>(`/api/getHash`, { key }, {
+    axios.post<WhitelistedMintArgs>(`/api/getHashForWhitelistMint`, { key }, {
         headers: { "Content-Type": "application/json" }
       })
       .then((v) => {
         if (v.data) {
-          setRoot(v.data.hash);
-          setProof(v.data.proof);
+          setWhitelistedMintArgs(v.data)
+        }
+      })
+      .catch(() => setError("Error"))
+      .finally(() => setLoading(false));
+  }, [key, _])
+
+  useEffect(() => {
+    if (!key) return;
+    axios.post<PublicMintArgs>(`/api/getHashForPublicMint`, { key }, {
+        headers: { "Content-Type": "application/json" }
+      })
+      .then((v) => {
+        if (v.data) {
+          setPublicMintArgs(v.data)
         }
       })
       .catch(() => setError("Error"))
@@ -34,8 +66,8 @@ export const useComputeHash = ({ key }: { key?: string }): {
   }, [key, _])
 
   return {
-    hash,
-    proof,
+    whitelistedMintArgs,
+    publicMintArgs,
     error,
     loading,
     refetch

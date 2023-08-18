@@ -69,6 +69,24 @@ export const abi = [
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "ZeroAddressNotAllowed",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "admin",
+        "type": "address"
+      }
+    ],
+    "name": "AdminRenounced",
+    "type": "event"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -148,19 +166,6 @@ export const abi = [
       }
     ],
     "name": "PublicMint",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "admin",
-        "type": "address"
-      }
-    ],
-    "name": "RenounceAdmin",
     "type": "event"
   },
   {
@@ -460,6 +465,35 @@ export const abi = [
         "type": "bytes32"
       },
       {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "mintTo",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      },
+      {
         "internalType": "bytes32[]",
         "name": "proof",
         "type": "bytes32[]"
@@ -474,25 +508,6 @@ export const abi = [
       }
     ],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "recipient",
-        "type": "address"
-      }
-    ],
-    "name": "mintTo",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -872,14 +887,14 @@ export const abi = [
   }
 ]
 
-export const deployed = {
-  chainId: 5,
-  address: "0xd7dc6c4292d0cc8580ad7ab2434a996afc5f1b1b",
-  abi
-}
-
 // export const deployed = {
-//   chainId: 31337,
-//   address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+//   chainId: 5,
+//   address: "0xd7dc6c4292d0cc8580ad7ab2434a996afc5f1b1b",
 //   abi
 // }
+
+export const deployed = {
+  chainId: 1,
+  address: "0x38628490c3043e5d0bbb26d5a0a62fc77342e9d5",
+  abi
+}
