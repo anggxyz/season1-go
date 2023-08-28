@@ -159,6 +159,12 @@ export const abi = [
         "type": "address"
       },
       {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      },
+      {
         "indexed": false,
         "internalType": "uint256",
         "name": "tokenId",
@@ -362,7 +368,7 @@ export const abi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "hash",
+        "name": "",
         "type": "bytes32"
       }
     ],
@@ -429,6 +435,25 @@ export const abi = [
       }
     ],
     "name": "isMinter",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "isWhitelisted",
     "outputs": [
       {
         "internalType": "bool",
@@ -514,7 +539,7 @@ export const abi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "minter",
+        "name": "",
         "type": "address"
       }
     ],
@@ -533,7 +558,7 @@ export const abi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "minter",
+        "name": "",
         "type": "address"
       }
     ],
@@ -725,49 +750,6 @@ export const abi = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "tokenByIndex",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "tokenOfOwnerByIndex",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
       }
@@ -778,19 +760,6 @@ export const abi = [
         "internalType": "string",
         "name": "",
         "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalSupply",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -906,6 +875,6 @@ export const abi = [
 // }
 export const deployed = {
   chainId: 5,
-  address: "0xB7859b5921143937112369F22A02cEb3B720AB9c",
+  address: "0x0543dbab2f40c705cda26b0d85236da2b543b90a",
   abi
 }
