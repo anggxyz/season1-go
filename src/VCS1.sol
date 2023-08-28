@@ -3,7 +3,6 @@ pragma solidity 0.8.10;
 
 import "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import "openzeppelin-contracts/contracts/utils/Strings.sol";
-import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
 import "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import "./Admins.sol";
@@ -20,7 +19,7 @@ error PublicMintsActive();
 error WhitelistTransfersPaused();
 error WhitelistTransfersActive();
 
-contract VCS1 is ERC721, ERC721Enumerable, Admins {
+contract VCS1 is ERC721, Admins {
     using Strings for uint256;
 
     string public baseURI;
@@ -29,70 +28,40 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
     uint256 public constant MINT_PRICE = 0.01 ether;
 
     // updated when an address mints an NFT
-    // includes all whitelisted and non-whitelisted
-    mapping(address => uint256) internal _minter;
+    mapping(address => uint256) public minterToTokenId;
 
     // updated when a hash is used to mint by an address (record of consumed hashes)
-    // hashes are only used by whitelisted accounts
-    mapping(bytes32 => address) internal _hashToMinter;
+    mapping(bytes32 => address) public hashToMinter;
 
-    // all whitelisted minters
-    // updated when a hash is used to mint by an address (record of all whitelisted successful minters)
-    // hashes are only used by whitelisted accounts
-    mapping(address => bytes32) internal _minterToHash;
+    // updated when a hash is used to mint by an address
+    mapping(address => bytes32) public minterToHash;
 
-    bool private _whitelistTransfersPaused;
-    bool private _publicMintsPaused;
+    // updated when a new whitelisted mint has happened
+    // used to check in _beforeTokenTransfer
+    mapping(address => bool) public isWhitelisted;
+
+    bool public whitelistTransfersPaused;
+    bool public publicMintsPaused;
 
     // whitelist merkle root
-    bytes32 private _root;
+    bytes32 public merkleRoot;
 
     event RootUpdated(bytes32 indexed oldRoot, bytes32 indexed newRoot);
     event WhitelistMint(address indexed minter, bytes32 indexed hash, uint256 tokenId);
-    event PublicMint(address indexed minter, uint256 tokenId);
+    event PublicMint(address indexed minter, bytes32 indexed hash, uint256 tokenId);
 
     constructor() ERC721("VCS1", "VCS1") {
-        _whitelistTransfersPaused = true;
-        _publicMintsPaused = true;
+        whitelistTransfersPaused = true;
+        publicMintsPaused = true;
         _addAdmin(msg.sender);
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721, ERC721Enumerable)
-        returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
-    function minterToHash(address minter) public view returns (bytes32) {
-        return _minterToHash[minter];
-    }
-
-    function hashToMinter(bytes32 hash) public view returns (address) {
-        return _hashToMinter[hash];
-    }
-
     function isMinter(address minter) public view returns (bool) {
-        return _minter[minter] != 0;
-    }
-
-    function minterToTokenId(address minter) public view returns (uint256) {
-        return _minter[minter];
-    }
-
-    function merkleRoot() public view virtual returns (bytes32) {
-        return _root;
-    }
-
-    function publicMintsPaused() public view virtual returns (bool) {
-        return _publicMintsPaused;
-    }
-
-    function whitelistTransfersPaused() public view virtual returns (bool) {
-        return _whitelistTransfersPaused;
+        return minterToTokenId[minter] != 0;
     }
 
     /**
@@ -111,37 +80,37 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
     }
 
     function updateMerkleRoot(bytes32 newRoot) external onlyAdmin {
-        bytes32 oldRoot = _root;
-        _root = newRoot;
+        bytes32 oldRoot = merkleRoot;
+        merkleRoot = newRoot;
         emit RootUpdated(oldRoot, newRoot);
     }
 
     function pausePublicMints() external onlyAdmin {
-        if (publicMintsPaused()) {
+        if (publicMintsPaused) {
             revert PublicMintsPaused();
         }
-        _publicMintsPaused = true;
+        publicMintsPaused = true;
     }
 
     function pauseWhitelistTransfers() external onlyAdmin {
-        if (whitelistTransfersPaused()) {
+        if (whitelistTransfersPaused) {
             revert WhitelistTransfersPaused();
         }
-        _whitelistTransfersPaused = true;
+        whitelistTransfersPaused = true;
     }
 
     function unpausePublicMints() external onlyAdmin {
-        if (!publicMintsPaused()) {
+        if (!publicMintsPaused) {
             revert PublicMintsActive();
         }
-        _publicMintsPaused = false;
+        publicMintsPaused = false;
     }
 
     function unpauseWhitelistTransfers() external onlyAdmin {
-        if (!whitelistTransfersPaused()) {
+        if (!whitelistTransfersPaused) {
             revert WhitelistTransfersActive();
         }
-        _whitelistTransfersPaused = false;
+        whitelistTransfersPaused = false;
     }
 
     /**
@@ -169,10 +138,11 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
     function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize)
         internal
         virtual
-        override(ERC721, ERC721Enumerable)
+        override(ERC721)
     {
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
-        if (minterToHash(from) != 0 && whitelistTransfersPaused()) {
+        // revert if `from` was a whitelist mint and whitelist transfers are currently paused
+        if ((isWhitelisted[from] == true) && whitelistTransfersPaused) {
             revert WhitelistTransfersPaused();
         }
     }
@@ -192,22 +162,21 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
         if (balanceOf(recipient) > 0 || isMinter(recipient)) {
             revert NewMintersOnly();
         }
-        if (hashToMinter(hash) != address(0)) {
+        if (hashToMinter[hash] != address(0)) {
             revert UsedHash();
         }
-        if (minterToHash(recipient) != 0) {
+        if (minterToHash[recipient] != 0) {
             revert NewMintersOnly();
         }
     }
 
-    // @todo
     /**
      * @dev Verify if the given hash belongs to the merkle tree
      * with `root`
      * @param hash hash to verify
      */
     function _verifyHash(bytes32 hash, bytes32[] memory proof) internal view returns (bool) {
-        return MerkleProof.verify(proof, _root, hash);
+        return MerkleProof.verify(proof, merkleRoot, hash);
     }
 
     /**
@@ -218,13 +187,13 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      */
 
     function _verifyHash(bytes32 hash, bytes memory signature) internal view returns (bool) {
-        return isAdmin(ECDSA.recover(hash, signature));
+      return isAdmin(ECDSA.recover(hash, signature));
     }
 
     function _postMint(address recipient, bytes32 hash) internal {
-        _minter[recipient] = currentTokenId;
-        _hashToMinter[hash] = recipient;
-        _minterToHash[recipient] = hash;
+        minterToTokenId[recipient] = currentTokenId;
+        hashToMinter[hash] = recipient;
+        minterToHash[recipient] = hash;
     }
     /**
      * @dev increments the `currentTokenId` param and
@@ -259,7 +228,7 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
     function mintTo(address recipient, bytes32 hash, bytes memory signature) public payable returns (uint256) {
         _preMintCheck(recipient, hash);
 
-        if (publicMintsPaused()) {
+        if (publicMintsPaused) {
             revert PublicMintsPaused();
         }
 
@@ -275,11 +244,10 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
         _mint(recipient);
         _postMint(recipient, hash);
 
-        emit PublicMint(recipient, currentTokenId);
+        emit PublicMint(recipient, hash, currentTokenId);
 
         return currentTokenId;
     }
-
     /**
      * @dev mints a new token to the recipient - called by whitelisted addresses
      *
@@ -291,6 +259,7 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
      * @param recipient receiver of the nft
      * @param hash unique hash associated with minter's twitter handle
      */
+
     function mintTo(address recipient, bytes32 hash, bytes32[] memory proof) public returns (uint256) {
         _preMintCheck(recipient, hash);
 
@@ -301,8 +270,9 @@ contract VCS1 is ERC721, ERC721Enumerable, Admins {
         _mint(recipient);
         _postMint(recipient, hash);
 
-        emit WhitelistMint(recipient, hash, currentTokenId);
+        isWhitelisted[recipient] = true;
 
+        emit WhitelistMint(recipient, hash, currentTokenId);
         return currentTokenId;
     }
 }

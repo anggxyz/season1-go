@@ -32,7 +32,10 @@ export default async function getHashForWhitelistMint (req: NextApiRequest, res:
 
   try {
     proof = computeProof(hash, whitelist);
-  } catch (err) {}
+  } catch (err) {
+    /** will error here if hash is not found in the whitelist */
+    // @anggxyz @todo handle this case
+  }
 
 
   return res.status(200).json({ hash, proof });

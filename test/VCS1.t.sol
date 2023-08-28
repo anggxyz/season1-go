@@ -4,230 +4,168 @@ pragma solidity 0.8.10;
 import "forge-std/Test.sol";
 import "../src/VCS1.sol";
 
-// @todo
 
 contract VCS1Test is Test {
     using stdStorage for StdStorage;
-
     VCS1 private nft;
 
     function setUp() public {
-        // Deploy NFT contract
         nft = new VCS1();
     }
 
-    function test_addAdmin() public {
-        // nft.addNewAdmin(address(1));
-        // nft.renounceAdmin(address(1));
-        // vm.startPrank(address(1));
-        // nft.unpausePublicMints();
-        // vm.stopPrank();
+    function test_deployerIsAdmin() public {
+        assertEq(nft.isAdmin(address(this)), true);
     }
 
-    /**
-     * only owner is able to update the root
-     */
-    function test_updateMerkleRootOnlyOwner() public {}
+    function test_updateMerkleRootOnlyOwner() public {
+      bytes32 root = 0x71b54e74658fd550f813904ff0ebe1505967c6940c36761f7b3b9e8b85c4916f;
+      vm.expectRevert(CallerNotAdmin.selector);
+      vm.startPrank(address(0));
+      nft.updateMerkleRoot(root);
+      vm.stopPrank();
 
-    /**
-     * root should be updated correctly
-     */
-    function test_updateMerkleRoot() public {}
-
-    /**
-     * only owner should be able to execute
-     */
-    function test_pausePublicMintsOnlyOwner() public {}
-
-    /**
-     * should pause public mint
-     * execute pausePublicMint
-     * execute `mintTo(address)` -> should revert with PublicMintsPaused()
-     */
-    function test_pausePublicMints() public {
-        // nft.pausePublicMints();
+      nft.updateMerkleRoot(root);
+      assertEq(nft.merkleRoot(), root);
     }
 
-    /**
-     * should unpause public mint
-     * check pausedPublicMints -> should be false (by default)
-     * execute pausePublicMints by owner
-     * check pausedPublicMints -> should be true
-     * execute unpausePublicMints by owner
-     * check pausedPublicMints -> shoudl be false
-     */
-    function test_unpausePublicMints() public {
-        nft.unpausePublicMints();
+    function test_unpausePublicMintsOnlyOwner() public {
+      vm.startPrank(address(0));
+      vm.expectRevert(CallerNotAdmin.selector);
+      nft.pausePublicMints();
+      vm.stopPrank();
+
+      // should be true by default
+      assertEq(nft.publicMintsPaused(), true);
+      nft.unpausePublicMints(); // sets to false
+      assertEq(nft.publicMintsPaused(), false);
     }
 
-    /**
-     * only owner should be able to execute
-     */
-    function test_pauseWhitelistTransfersOnlyOwner() public {}
+    function test_unpauseWhitelistTransfersOnlyOwner() public {
+      vm.startPrank(address(0));
+      vm.expectRevert(CallerNotAdmin.selector);
+      nft.unpauseWhitelistTransfers();
+      vm.stopPrank();
 
-    /**
-     * should pause transfers for whitelisted addresses
-     * execute pauseWhitelistTransfers
-     * create merkle tree with 1 random hash
-     * set merkle root
-     * use hash to execute:
-     * execute mintTo(address, hash)
-     * execute safeTransferFrom for the tokenid
-     * should revert on WhitelistTransfersPaused()
-     */
-    function test_pauseWhitelistTransfers() public {}
 
-    /**
-     * check pausedWhitelistTransfers -> should be false by default
-     * execute pauseWhitelistTransfers by owner
-     * check pausedWhitelistTransfers -> should be true
-     * execute pauseWhitelistTransfers by owner
-     * check pausedWhitelistTransfers -> should be false
-     */
-    function test_unpauseWhitelistTransfers() public {}
+      assertEq(nft.whitelistTransfersPaused(), true);
+      nft.unpauseWhitelistTransfers();
+      assertEq(nft.whitelistTransfersPaused(), false);
+    }
 
-    /**
-     * no value sent in `mintTo`
-     * should revert with MintPriceNotPaid
-     */
+
+    ////// PUBLIC MINT
+
     function test_MintPriceNotPaid() public {
-        // vm.expectRevert(MintPriceNotPaid.selector);
-        // nft.mintTo(address(1));
+      nft.unpausePublicMints();
+      vm.expectRevert(MintPriceNotPaid.selector);
+      bytes32 hash = 0x71b54e74658fd550f813904ff0ebe1505967c6940c36761f7b3b9e8b85c4916f;
+      bytes memory signature = hex"8c63f85d91e2e6538e35a2335a5af5c29b253407fb841a1daacd1e0481838b163ca09c469030f3973737cbe598682d91c3bd2426bbe297bea0cd2d7c533897c51c";
+      nft.mintTo(address(1), hash, signature);
     }
 
-    /**
-     * successful public mint
-     * publicMintPaused should be false
-     * execute `mintTo(address)` -> should not revert
-     * address should now own a token (check balanceOf)
-     * should emit PublicMint
-     */
-    function test_publicMint() public {}
+    function test_publicMint() public {
+      nft.unpausePublicMints();
+      nft.addNewAdmin(0x9FcD02E0A409192D6095546657A6c30e0F47b9C4); // server test admin address
+      bytes32 hash = 0x71b54e74658fd550f813904ff0ebe1505967c6940c36761f7b3b9e8b85c4916f; // hash of key (twitter handle)
+      bytes memory signature = hex"8c63f85d91e2e6538e35a2335a5af5c29b253407fb841a1daacd1e0481838b163ca09c469030f3973737cbe598682d91c3bd2426bbe297bea0cd2d7c533897c51c"; // signed by 0x9FcD02E0A409192D6095546657A6c30e0F47b9C4
+      nft.mintTo{value: nft.MINT_PRICE()}(address(1), hash, signature);
+      assertEq(nft.balanceOf(address(1)), 1);
+      assertEq(nft.ownerOf(1), address(1));
+      assertEq(nft.minterToTokenId(address(1)), 1);
+      assertEq(nft.hashToMinter(hash), address(1));
+      assertEq(nft.minterToHash(address(1)), hash);
+    }
 
-    /**
-     * successful whitelist mint
-     * check whitelistTransfersPaused -> should be false (by default)
-     * create merkle tree with 1 random hash
-     * set merkle root
-     * use hash to execute:
-     * execute mintTo(address, hash)
-     * check balanceOf
-     * should emit WhitelistMint
-     */
-    function test_whitelistMint() public {}
+    /// WHITELIST MINT
+    function test_whitelistMint() public {
+      address minter = address(1);
+      bytes32 merkleRoot = 0xc4cb5ce24816d92e27fa0df7b57ceebae902e66e28170e9baf799f81ff69d9a6;
+      bytes32 hash = 0xde6017cd2af3b5cb89a89a8fc232cd92efef7d727709f3aad6825a1e111d9fff;
+      bytes32[] memory proof = new bytes32[](1);
+      proof[0] = bytes32(0xc1990e329b108f754cf082c36ac67429aae15476a0efeb46ae70831110834ee0);
+      // update merkle root
+      nft.updateMerkleRoot(merkleRoot);
 
-    /**
-     * should revert for invalid hash
-     * check whitelistTransfersPaused -> should be false (by default)
-     * create merkle tree with 1 random hash
-     * set merkle root
-     * use random (invalid) to execute:
-     * execute mintTo(address, hash)
-     * should revert with HashVerificationFailed()
-     */
-    function test_whitelistMintInvalidHash() public {}
+      // whitelist mint
+      nft.mintTo(minter, hash, proof);
+
+      // check vars
+      assertEq(nft.balanceOf(minter), 1);
+      assertEq(nft.ownerOf(1), minter);
+      assertEq(nft.minterToTokenId(minter), 1);
+      assertEq(nft.hashToMinter(hash), minter);
+      assertEq(nft.minterToHash(minter), hash);
+    }
+
+    function test_whitelistMintInvalidHash() public {
+      address minter = address(1);
+      bytes32 merkleRoot = 0xc4cb5ce24816d92e27fa0df7b57ceebae902e66e28170e9baf799f81ff69d9a6;
+      bytes32 hash = 0x222bf48c471ec38d734d2271c9aa48d6ca9e6488f2768dcb082ebc017d4c7be3; // random hash
+      bytes32[] memory proof = new bytes32[](1);
+      proof[0] = bytes32(0xc1990e329b108f754cf082c36ac67429aae15476a0efeb46ae70831110834ee0);
+      nft.updateMerkleRoot(merkleRoot);
+      vm.expectRevert(HashVerificationFailed.selector);
+      nft.mintTo(minter, hash, proof);
+    }
 
     /**
      * revert if TOTALSUPPLY mints have happened
      */
     function test_RevertMintMaxSupplyReached() public {
-        // uint256 slot = stdstore
-        //     .target(address(nft))
-        //     .sig("currentTokenId()")
-        //     .find();
-        // bytes32 loc = bytes32(slot);
-        // bytes32 mockedCurrentTokenId = bytes32(abi.encode(10000));
-        // vm.store(address(nft), loc, mockedCurrentTokenId);
-        // vm.expectRevert(MaxSupply.selector);
-        // nft.mintTo{value: 0.01 ether}(address(1));
+        uint256 slot = stdstore
+            .target(address(nft))
+            .sig("currentTokenId()")
+            .find();
+        bytes32 loc = bytes32(slot);
+        bytes32 mockedCurrentTokenId = bytes32(abi.encode(1500));
+        vm.store(address(nft), loc, mockedCurrentTokenId);
+
+        // try whitelist mint
+        address minter = address(1);
+        bytes32 merkleRoot = 0xc4cb5ce24816d92e27fa0df7b57ceebae902e66e28170e9baf799f81ff69d9a6;
+        bytes32 hash = 0xde6017cd2af3b5cb89a89a8fc232cd92efef7d727709f3aad6825a1e111d9fff;
+        bytes32[] memory proof = new bytes32[](1);
+        proof[0] = bytes32(0xc1990e329b108f754cf082c36ac67429aae15476a0efeb46ae70831110834ee0);
+        // update merkle root
+        nft.updateMerkleRoot(merkleRoot);
+        vm.expectRevert(MaxSupply.selector);
+        nft.mintTo(minter, hash, proof);
     }
-
-    /**
-     * revert if recipient is zero address
-     */
-    function test_RevertMintToZeroAddress() public {
-        // vm.expectRevert("ERC721: mint to the zero address");
-        // nft.mintTo{value: 0.01 ether}(address(0));
-    }
-
-    /**
-     * callable by owner
-     * execute updateBaseURI
-     * call tokenURI ot check
-     */
-    function test_updateBaseURI() public {}
-
-    /**
-     * correctly register owner of a token id
-     * execute a public mint (`mintTo(address)`)
-     * execute a whitelist mint (`mintTo(address,hash)`)
-     * call minterToHash [for whitelisted]
-     * call hashToMinter  [for whitelisted]
-     * call isMinter [for both]
-     * call balanceOf [for both]
-     */
-    // function test_NewMintOwnerRegistered() public {
-    //     nft.mintTo{value: 0.01 ether}(address(1));
-    //     uint256 slotOfNewOwner = stdstore
-    //         .target(address(nft))
-    //         .sig(nft.ownerOf.selector)
-    //         .with_key(1)
-    //         .find();
-
-    //     uint160 ownerOfTokenIdOne = uint160(
-    //         uint256(
-    //             (vm.load(address(nft), bytes32(abi.encode(slotOfNewOwner))))
-    //         )
-    //     );
-    //     assertEq(address(ownerOfTokenIdOne), address(1));
-    // }
-
-    // /**
-    //  * an address should be able to own a single NFT only
-    //  * via mint
-    //  */
-    // function test_SingleNFTOwnershipOnlyViaMint() public {
-    //     nft.mintTo{value: 0.01 ether}(address(1));
-    //     vm.expectRevert(SingleNFTOwnershipOnly.selector);
-    //     nft.mintTo{value: 0.01 ether}(address(1));
-    // }
-    // /**
-    //  * an address should be able to own a single NFT only
-    //  * via transfer
-    //  */
-    // function test_SingleNFTOwnershipOnlyViaTransfer() public {
-    //     nft.mintTo{value: 0.01 ether}(address(1)); // token id 1
-    //     nft.mintTo{value: 0.01 ether}(address(2)); // token id 2
-    //     vm.startPrank(address(2));
-    //     vm.expectRevert(SingleNFTOwnershipOnly.selector);
-    //     nft.safeTransferFrom(address(2), address(1), 2);
-    //     vm.stopPrank();
-    // }
 
     function test_WithdrawalWorksAsOwner() public {
-        // Mint an NFT, sending eth to the contract
-        // Receiver receiver = new Receiver();
-        // address payable payee = payable(address(0x1337));
-        // uint256 priorPayeeBalance = payee.balance;
-        // nft.mintTo{value: nft.MINT_PRICE()}(address(0));
+        // try public mint
+        nft.unpausePublicMints();
+        nft.addNewAdmin(0x9FcD02E0A409192D6095546657A6c30e0F47b9C4); // server test admin address
+        bytes32 publicHash = 0x71b54e74658fd550f813904ff0ebe1505967c6940c36761f7b3b9e8b85c4916f; // hash of key (twitter handle)
+        bytes memory signature = hex"8c63f85d91e2e6538e35a2335a5af5c29b253407fb841a1daacd1e0481838b163ca09c469030f3973737cbe598682d91c3bd2426bbe297bea0cd2d7c533897c51c"; // signed by 0x9FcD02E0A409192D6095546657A6c30e0F47b9C4
+        nft.mintTo{value: nft.MINT_PRICE()}(address(1), publicHash, signature);
+        address payable payee = payable(address(0x1337));
+        nft.addNewAdmin(payee);
+
+        vm.startPrank(payee);
+        uint256 priorPayeeBalance = payee.balance;
         // Check that the balance of the contract is correct
-        // assertEq(address(nft).balance, nft.MINT_PRICE());
-        // uint256 nftBalance = address(nft).balance;
+        assertEq(address(nft).balance, nft.MINT_PRICE());
+        uint256 nftBalance = address(nft).balance;
         // Withdraw the balance and assert it was transferred
-        // nft.withdrawPayments(payee);
-        // assertEq(payee.balance, priorPayeeBalance + nftBalance);
+        nft.withdrawPayments(payee);
+        assertEq(payee.balance, priorPayeeBalance + nftBalance);
+        vm.stopPrank();
     }
 
     function test_WithdrawalFailsAsNotOwner() public {
-        // // Mint an NFT, sending eth to the contract
-        // Receiver receiver = new Receiver();
-        // nft.mintTo{value: nft.MINT_PRICE()}(address(receiver));
-        // // Check that the balance of the contract is correct
-        // assertEq(address(nft).balance, nft.MINT_PRICE());
-        // // Confirm that a non-owner cannot withdraw
-        // vm.expectRevert("Ownable: caller is not the owner");
-        // vm.startPrank(address(0xd3ad));
-        // nft.withdrawPayments(payable(address(0xd3ad)));
-        // vm.stopPrank();
+        // try public mint
+        nft.unpausePublicMints();
+        nft.addNewAdmin(0x9FcD02E0A409192D6095546657A6c30e0F47b9C4); // server test admin address
+        bytes32 publicHash = 0x71b54e74658fd550f813904ff0ebe1505967c6940c36761f7b3b9e8b85c4916f; // hash of key (twitter handle)
+        bytes memory signature = hex"8c63f85d91e2e6538e35a2335a5af5c29b253407fb841a1daacd1e0481838b163ca09c469030f3973737cbe598682d91c3bd2426bbe297bea0cd2d7c533897c51c"; // signed by 0x9FcD02E0A409192D6095546657A6c30e0F47b9C4
+        nft.mintTo{value: nft.MINT_PRICE()}(address(1), publicHash, signature);
+
+        address payable payee = payable(address(0x1337));
+        vm.startPrank(payee);
+        assertEq(address(nft).balance, nft.MINT_PRICE());
+        vm.expectRevert(CallerNotAdmin.selector);
+        nft.withdrawPayments(payee);
+        vm.stopPrank();
     }
 }
