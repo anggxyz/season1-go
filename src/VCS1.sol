@@ -33,9 +33,6 @@ contract VCS1 is ERC721, Admins {
     // updated when a hash is used to mint by an address (record of consumed hashes)
     mapping(bytes32 => address) public hashToMinter;
 
-    // updated when a hash is used to mint by an address
-    mapping(address => bytes32) public minterToHash;
-
     // updated when a new whitelisted mint has happened
     // used to check in _beforeTokenTransfer
     mapping(address => bool) public isWhitelisted;
@@ -77,6 +74,22 @@ contract VCS1 is ERC721, Admins {
             revert NonExistentTokenURI();
         }
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
+    }
+
+    function walletOfOwner(address _address) public view virtual returns (uint256[] memory) {
+        // Thanks 0xinuarashi for da inspo
+        // (and @mousedev)
+        uint256 _balance = balanceOf(_address);
+        uint256[] memory _tokens = new uint256[](_balance);
+        uint256 _addedTokens;
+        for (uint256 i = 1; i <= TOTAL_SUPPLY; i++) {
+            if (ownerOf(i) == _address) {
+                _tokens[_addedTokens] = i;
+                _addedTokens++;
+            }
+            if (_addedTokens == _balance) break;
+        }
+        return _tokens;
     }
 
     function updateMerkleRoot(bytes32 newRoot) external onlyAdmin {
@@ -135,6 +148,10 @@ contract VCS1 is ERC721, Admins {
         }
     }
 
+    // @todo
+    // a whitelisted address could approve another non-whitelisted address
+    // and make a transfer -- should revert for that
+    // or remove approvals 
     function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize)
         internal
         virtual
@@ -165,9 +182,6 @@ contract VCS1 is ERC721, Admins {
         if (hashToMinter[hash] != address(0)) {
             revert UsedHash();
         }
-        if (minterToHash[recipient] != 0) {
-            revert NewMintersOnly();
-        }
     }
 
     /**
@@ -187,13 +201,12 @@ contract VCS1 is ERC721, Admins {
      */
 
     function _verifyHash(bytes32 hash, bytes memory signature) internal view returns (bool) {
-      return isAdmin(ECDSA.recover(hash, signature));
+        return isAdmin(ECDSA.recover(hash, signature));
     }
 
     function _postMint(address recipient, bytes32 hash) internal {
         minterToTokenId[recipient] = currentTokenId;
         hashToMinter[hash] = recipient;
-        minterToHash[recipient] = hash;
     }
     /**
      * @dev increments the `currentTokenId` param and

@@ -856,23 +856,6 @@ export const abi = [
   }
 ]
 
-// export const deployed = {
-//   chainId: 5,
-//   address: "0xd7dc6c4292d0cc8580ad7ab2434a996afc5f1b1b",
-//   abi
-// }
-
-// tenderly forked mainnet
-// export const deployed = {
-//   chainId: 1,
-//   address: "0x38628490c3043e5d0bbb26d5a0a62fc77342e9d5",
-//   abi
-// }
-// export const deployed = {
-//   chainId: 1,
-//   address: "0x38628490c3043e5d0bbb26d5a0a62fc77342e9d5",
-//   abi
-// }
 export const deployed = {
   chainId: 5,
   address: "0x0543dbab2f40c705cda26b0d85236da2b543b90a",

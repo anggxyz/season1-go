@@ -19,9 +19,7 @@ export const useDataStore = ({ key }: { key: string }): {
   useEffect(() => {
     axios
       .post(`/api/edge/getKey`, { key }, {
-        headers: {
-          "Content-Type": "application/json"
-        }
+        headers: { "Content-Type": "application/json" }
       })
       .then((v) => {
         if (v.data) setData(v.data);
