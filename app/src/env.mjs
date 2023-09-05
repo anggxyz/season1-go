@@ -15,7 +15,6 @@ export const env = createEnv({
     TWITTER_CLIENT_ID: z.string().min(1),
     TWITTER_COOKIE_SECRET: z.string().min(1),
     EDGE_CONFIG: z.string().min(1),
-    SECRETYSECRET: z.string().min(1),
     AUTH_TOKEN: z.string().min(1)
   },
 
@@ -43,7 +42,6 @@ export const env = createEnv({
     TWITTER_COOKIE_SECRET: process.env.TWITTER_COOKIE_SECRET,
     EDGE_CONFIG: process.env.EDGE_CONFIG,
     NEXT_PUBLIC_TWITTER_CLIENT_ID: process.env.NEXT_PUBLIC_TWITTER_CLIENT_ID,
-    SECRETYSECRET: process.env.SECRETYSECRET,
     AUTH_TOKEN:process.env.AUTH_TOKEN
   },
   /**

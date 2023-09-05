@@ -16,7 +16,7 @@ export default async function getRoot (req: NextApiRequest, res: NextApiResponse
     throw `no data returned. data: ${data}`;
   }
 
-  const root: string = getTreeRoot(data);
+  const root: string = await getTreeRoot(data);
 
   res.status(200).json({ root });
 }

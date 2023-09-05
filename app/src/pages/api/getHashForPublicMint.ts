@@ -1,6 +1,6 @@
 import { type NextApiRequest, type NextApiResponse } from "next";
 import { pick } from "lodash";
-import { ethers, hashMessage } from "ethers";
+import { getSignature } from "~src/server/utils/whitelistMerkleUtils";
 
 
 const deployer = process.env.PRIVATE_KEY;
@@ -16,9 +16,7 @@ export default async function getHashForPublicMint (req: NextApiRequest, res: Ne
   if (!key) {
     throw `error: no key provided. key: ${key}`;
   }
-  const hash = hashMessage(key);
-  const admin = new ethers.Wallet(deployer)
-  const signature = await admin.signMessage(key);
+  const { hash, signature } = await getSignature(key);
 
   if (!signature) {
     throw `error: no signature returned. signature: ${signature}`;

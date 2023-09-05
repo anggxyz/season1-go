@@ -1,55 +1,48 @@
 import { MerkleTree } from "~src/server/utils/merkle";
+import { ethers, hashMessage } from "ethers";
 import Web3 from "web3";
-import {
-  createCipheriv,
-  createHash,
-  // createDecipheriv,
-  // scryptSync
-} from "crypto";
+
 const { utils } = Web3;
-const algorithm = 'aes-256-cbc';
-const ENCRYPTION_KEY = process.env.SECRETYSECRET;
-if (!ENCRYPTION_KEY) {
-  throw "key not found";
+
+const deployer = process.env.PRIVATE_KEY;
+if (!deployer) {
+  throw "PRIVATE_KEY not found";
+}
+const ADMIN = new ethers.Wallet(deployer);
+
+// used to generate signature for both public
+// and whitelist mints
+// for whitelist mints, these signatures
+// combine to form a merkle tree
+// signatures are verified against the root
+// on the smart contract
+export const getSignature = async(element: string) => {
+  const hash = hashMessage(element);
+  const signature = await ADMIN.signMessage(element);
+  return { hash, signature };
 }
 
-const KEY = createHash('sha256').update(ENCRYPTION_KEY).digest('base64').substr(0, 32);
-const IV = Buffer.alloc(16,0)
-
-// const decrypt = (encryptedText: string) => {
-//   try {
-//     const textParts = encryptedText.split(':');
-//     const iv = Buffer.from(textParts.shift() ?? "", 'hex');
-//     const encryptedData = Buffer.from(textParts.join(':'), 'hex');
-//     const decipher = createDecipheriv(algorithm, KEY, iv);
-//     const decrypted = decipher.update(encryptedData);
-//     const decryptedText = Buffer.concat([decrypted, decipher.final()]);
-//     return decryptedText.toString();
-//   } catch (error) {
-//     console.log(error)
-//   }
-// }
-
-const encrypt = (text: string) => {
-  const cipher = createCipheriv(algorithm, KEY, IV);
-  let encrypted = cipher.update(text);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  const encryptedText = IV.toString('hex') + ':' + encrypted.toString('hex')
-  return encryptedText;
+export const computeHash = async (element: string) => {
+  const { signature } = await getSignature(element);
+  return utils.soliditySha3(signature);
 }
 
-export const computeHash = (element: string) => utils.soliditySha3(encrypt(element));
+export const compressElements = async (elements: string[]) => {
+  const hashPromises = elements.map(d => computeHash(d));
+  const compressed = await Promise.all(hashPromises);
+  return compressed;
+}
 
-export const compressElements = (elements: string[]) => elements.map(d => computeHash(d));
-
-export const getTreeRoot = (elements: string[]) => {
-  const tree = new MerkleTree(compressElements(elements));
+export const getTreeRoot = async (elements: string[]) => {
+  const compressed = await compressElements(elements);
+  const tree = new MerkleTree(compressed);
   const root: string = tree.getHexRoot() as string;
   return root;
 }
 
-export const computeProof = (element: string, allElements: string[]) => {
-  const tree = new MerkleTree(compressElements(allElements));
+export const computeProof = async (element: string, allElements: string[]) => {
+  const compressed = await compressElements(allElements)
+  const tree = new MerkleTree(compressed);
   const proof = tree.getHexProof(element) as string[];
   return proof;
 }

@@ -22,7 +22,7 @@ export default async function getHashForWhitelistMint (req: NextApiRequest, res:
   }
 
   // compute hash of twitter handle
-  const hash: string | undefined = computeHash(key);
+  const hash: string | undefined = await computeHash(key);
 
   if (!hash) {
     throw `error: no hash returned. hash: ${hash}`;
@@ -31,7 +31,7 @@ export default async function getHashForWhitelistMint (req: NextApiRequest, res:
   let proof: string[] = [];
 
   try {
-    proof = computeProof(hash, whitelist);
+    proof = await computeProof(hash, whitelist);
   } catch (err) {
     /** will error here if hash is not found in the whitelist */
     // @anggxyz @todo handle this case
