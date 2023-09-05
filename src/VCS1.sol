@@ -18,6 +18,7 @@ error PublicMintsPaused();
 error PublicMintsActive();
 error WhitelistTransfersPaused();
 error WhitelistTransfersActive();
+error OutOfBounds();
 
 contract VCS1 is ERC721, Admins {
     using Strings for uint256;
@@ -83,6 +84,7 @@ contract VCS1 is ERC721, Admins {
         uint256[] memory _tokens = new uint256[](_balance);
         uint256 _addedTokens;
         for (uint256 i = 1; i <= TOTAL_SUPPLY; i++) {
+          // will revert with ERC721: invalid token ID if token id i isn't minted
             if (ownerOf(i) == _address) {
                 _tokens[_addedTokens] = i;
                 _addedTokens++;
@@ -90,6 +92,11 @@ contract VCS1 is ERC721, Admins {
             if (_addedTokens == _balance) break;
         }
         return _tokens;
+    }
+
+    function tokenOfOwnerByIndex(address _address, uint256 index) public view virtual returns (uint256) {
+      uint256[] memory wallet = walletOfOwner(_address);
+      return wallet[index];
     }
 
     function updateMerkleRoot(bytes32 newRoot) external onlyAdmin {
@@ -151,7 +158,7 @@ contract VCS1 is ERC721, Admins {
     // @todo
     // a whitelisted address could approve another non-whitelisted address
     // and make a transfer -- should revert for that
-    // or remove approvals 
+    // or remove approvals
     function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize)
         internal
         virtual
